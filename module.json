@@ -1,0 +1,31 @@
+{
+   "author" : "Maroš Kollár",
+   "category" : "complex_applications",
+   "defaults" : {
+      "description" : "__description__",
+      "title" : "__title__"
+   },
+   "dependencies" : [],
+   "homepage" : "http://k-1.com",
+   "icon" : "icon.png",
+   "maturity" : "stable",
+   "moduleName" : "WindowControl",
+   "options" : {
+      "fields" : {
+         
+      }
+   },
+   "repository" : {
+      "source" : "https://github.com/maros/Zway-WindowControl",
+      "type" : "git"
+   },
+   "schema" : {
+      "properties" : {
+         
+      },
+      "required" : true,
+      "type" : "object"
+   },
+   "singleton" : true,
+   "version" : "1.00"
+}
