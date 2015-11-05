@@ -14,12 +14,60 @@
     "moduleName":"WindowControl",
     "options":{
         "fields":{
-            "temperature_inside_sensor":{
-                "order":7,
-                "label":"__temperature_inside_sensor_label__",
+            "rules":{
+                "items":{
+                    "fields":{
+                        "temperature_inside_sensor":{
+                            "label":"__temperature_inside_sensor_label__",
+                            "fields":{
+                                "item":{
+                                    "datasource":"namespaces",
+                                    "field":"devices",
+                                    "optionLabels":"namespaces:devices_sensorMultilevel:deviceName",
+                                    "type":"select"
+                                }
+                            }
+                        },
+                        "devices":{
+                            "label":"__devices_label__",
+                            "fields":{
+                                "item":{
+                                    "datasource":"namespaces",
+                                    "field":"devices",
+                                    "optionLabels":"namespaces:devices_switchMultilevel:deviceName",
+                                    "type":"select"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "thermostat_device":{
+                "label":"__thermostat_device_label__",
                 "datasource":"namespaces",
                 "field":"devices",
-                "optionLabels":"namespaces:devices_sensorMultilevel:deviceName",
+                "enum":"namespaces:devices_thermostat:deviceName",
+                "type":"select"
+            },
+            "rain_sensor":{
+                "label":"__rain_sensor_label__",
+                "datasource":"namespaces",
+                "field":"devices",
+                "enum":"namespaces:devices_sensorMultilevel:deviceName",
+                "type":"select"
+            }
+            "wind_sensor":{
+                "label":"__wind_sensor_label__",
+                "datasource":"namespaces",
+                "field":"devices",
+                "enum":"namespaces:devices_sensorMultilevel:deviceName",
+                "type":"select"
+            },
+            "temperature_outside_sensor":{
+                "label":"__temperature_outside_sensor_label__",
+                "datasource":"namespaces",
+                "field":"devices",
+                "enum":"namespaces:devices_sensorMultilevel:deviceName",
                 "type":"select"
             }
         }
@@ -46,7 +94,7 @@
                                 "required":true
                             },
                             "minItems":1,
-                            "uniqueItems": true
+                            "uniqueItems":true
                         },
                         "devices":{
                             "type":"array",
@@ -57,29 +105,24 @@
                                 "required":true
                             },
                             "minItems":1,
-                            "uniqueItems": true
+                            "uniqueItems":true
                         }
                     }
                 }
             },
+            "min_temperature_outside":{
+                "type":"number",
+                "default":10,
+                "required":true
+            },
+            "max_wind":{
+                "type":"number",
+                "default":30,
+                "required":true
+            },
             "thermostat_device":{
                 "datasource":"namespaces",
-                "enum":"namespaces:devices_switchMultilevel:deviceId",
-                "field":"enum"
-            },
-            "min_temperature_outside": {
-                "type": "number",
-                "default": 10,
-                "required": true
-            },
-            "max_wind": {
-                "type": "number",
-                "default": 30,
-                "required": true
-            },
-            "forecast_device":{
-                "datasource":"namespaces",
-                "enum":"namespaces:devices_sensorMultilevel:deviceId",
+                "enum":"namespaces:devices_thermostat:deviceId",
                 "field":"enum"
             },
             "rain_sensor":{
