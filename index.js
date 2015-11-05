@@ -36,7 +36,7 @@ WindowControl.prototype.init = function (config) {
         deviceId: "WindowControl_" + this.id,
         defaults: {
             metrics: {
-                probeTitle: 'WindowControl',
+                probeTitle: 'controller',
                 title: langFile.title,
                 level: 'off',
                 icon: '/ZAutomation/api/v1/load/modulemedia/WindowControl/icon_off.png'

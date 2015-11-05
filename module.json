@@ -1,31 +1,109 @@
 {
-   "author" : "Maroš Kollár",
-   "category" : "complex_applications",
-   "defaults" : {
-      "description" : "__description__",
-      "title" : "__title__"
-   },
-   "dependencies" : [],
-   "homepage" : "http://k-1.com",
-   "icon" : "icon.png",
-   "maturity" : "stable",
-   "moduleName" : "WindowControl",
-   "options" : {
-      "fields" : {
-         
-      }
-   },
-   "repository" : {
-      "source" : "https://github.com/maros/Zway-WindowControl",
-      "type" : "git"
-   },
-   "schema" : {
-      "properties" : {
-         
-      },
-      "required" : true,
-      "type" : "object"
-   },
-   "singleton" : true,
-   "version" : "1.00"
+    "author":"Maroš Kollár",
+    "category":"complex_applications",
+    "defaults":{
+        "description":"__description__",
+        "title":"__title__"
+    },
+    "dependencies":[
+        
+    ],
+    "homepage":"http://k-1.com",
+    "icon":"icon.png",
+    "maturity":"stable",
+    "moduleName":"WindowControl",
+    "options":{
+        "fields":{
+            "temperature_inside_sensor":{
+                "order":7,
+                "label":"__temperature_inside_sensor_label__",
+                "datasource":"namespaces",
+                "field":"devices",
+                "optionLabels":"namespaces:devices_sensorMultilevel:deviceName",
+                "type":"select"
+            }
+        }
+    },
+    "repository":{
+        "source":"https://github.com/maros/Zway-WindowControl",
+        "type":"git"
+    },
+    "schema":{
+        "properties":{
+            "rules":{
+                "dependencies":"insulation_active",
+                "minItem":1,
+                "type":"array",
+                "items":{
+                    "type":"object",
+                    "properties":{
+                        "temperature_inside_sensor":{
+                            "type":"array",
+                            "items":{
+                                "datasource":"namespaces",
+                                "enum":"namespaces:devices_sensorMultilevel:deviceId",
+                                "field":"enum",
+                                "required":true
+                            },
+                            "minItems":1,
+                            "uniqueItems": true
+                        },
+                        "devices":{
+                            "type":"array",
+                            "items":{
+                                "datasource":"namespaces",
+                                "enum":"namespaces:devices_switchMultilevel:deviceId",
+                                "field":"enum",
+                                "required":true
+                            },
+                            "minItems":1,
+                            "uniqueItems": true
+                        }
+                    }
+                }
+            },
+            "thermostat_device":{
+                "datasource":"namespaces",
+                "enum":"namespaces:devices_switchMultilevel:deviceId",
+                "field":"enum"
+            },
+            "min_temperature_outside": {
+                "type": "number",
+                "default": 10,
+                "required": true
+            },
+            "max_wind": {
+                "type": "number",
+                "default": 30,
+                "required": true
+            },
+            "forecast_device":{
+                "datasource":"namespaces",
+                "enum":"namespaces:devices_sensorMultilevel:deviceId",
+                "field":"enum"
+            },
+            "rain_sensor":{
+                "datasource":"namespaces",
+                "enum":"namespaces:devices_sensorMultilevel:deviceId",
+                "field":"enum",
+                "required":true
+            },
+            "wind_sensor":{
+                "datasource":"namespaces",
+                "enum":"namespaces:devices_sensorMultilevel:deviceId",
+                "field":"enum",
+                "required":true
+            },
+            "temperature_outside_sensor":{
+                "datasource":"namespaces",
+                "enum":"namespaces:devices_sensorMultilevel:deviceId",
+                "field":"enum",
+                "required":true
+            }
+        },
+        "required":true,
+        "type":"object"
+    },
+    "singleton":true,
+    "version":"1.00"
 }
