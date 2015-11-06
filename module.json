@@ -42,8 +42,17 @@
                     }
                 }
             },
+            "min_temperature_outside":{
+                "label": "__min_temperature_outside_label__",
+                "helper": "__min_temperature_outside_helper__"
+            },
+            "max_wind":{
+                "label": "__max_wind_label__",
+                "helper": "__max_wind_helper__"
+            },
             "thermostat_device":{
                 "label":"__thermostat_device_label__",
+                "helper":"__thermostat_device_helper__",
                 "datasource":"namespaces",
                 "field":"devices",
                 "enum":"namespaces:devices_thermostat:deviceName",
@@ -51,6 +60,7 @@
             },
             "rain_sensor":{
                 "label":"__rain_sensor_label__",
+                "helper":"__rain_sensor_helper__",
                 "datasource":"namespaces",
                 "field":"devices",
                 "enum":"namespaces:devices_sensorMultilevel:deviceName",
@@ -58,6 +68,7 @@
             }
             "wind_sensor":{
                 "label":"__wind_sensor_label__",
+                "helper":"__wind_sensor_helper__",
                 "datasource":"namespaces",
                 "field":"devices",
                 "enum":"namespaces:devices_sensorMultilevel:deviceName",
@@ -65,6 +76,7 @@
             },
             "temperature_outside_sensor":{
                 "label":"__temperature_outside_sensor_label__",
+                "helper":"__temperature_outside_sensor_helper__",
                 "datasource":"namespaces",
                 "field":"devices",
                 "enum":"namespaces:devices_sensorMultilevel:deviceName",
