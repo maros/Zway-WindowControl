@@ -9,12 +9,13 @@
         
     ],
     "homepage":"http://k-1.com",
-    "icon":"icon.png",
+    "icon":"icon_on.png",
     "maturity":"stable",
     "moduleName":"WindowControl",
     "options":{
         "fields":{
             "rules":{
+                "label": "__rules_label__",
                 "items":{
                     "fields":{
                         "temperature_inside_sensor":{
@@ -22,7 +23,7 @@
                             "fields":{
                                 "item":{
                                     "datasource":"namespaces",
-                                    "field":"devices",
+                                    "field" : "optionLabels",
                                     "optionLabels":"namespaces:devices_sensorMultilevel:deviceName",
                                     "type":"select"
                                 }
@@ -33,7 +34,7 @@
                             "fields":{
                                 "item":{
                                     "datasource":"namespaces",
-                                    "field":"devices",
+                                    "field" : "optionLabels",
                                     "optionLabels":"namespaces:devices_switchMultilevel:deviceName",
                                     "type":"select"
                                 }
@@ -54,32 +55,32 @@
                 "label":"__thermostat_device_label__",
                 "helper":"__thermostat_device_helper__",
                 "datasource":"namespaces",
-                "field":"devices",
-                "enum":"namespaces:devices_thermostat:deviceName",
+                "field" : "optionLabels",
+                "optionLabels":"namespaces:devices_thermostat:deviceName",
                 "type":"select"
             },
             "rain_sensor":{
                 "label":"__rain_sensor_label__",
                 "helper":"__rain_sensor_helper__",
                 "datasource":"namespaces",
-                "field":"devices",
-                "enum":"namespaces:devices_sensorMultilevel:deviceName",
+                "field" : "optionLabels",
+                "optionLabels":"namespaces:devices_sensorBinary:deviceName",
                 "type":"select"
-            }
+            },
             "wind_sensor":{
                 "label":"__wind_sensor_label__",
                 "helper":"__wind_sensor_helper__",
                 "datasource":"namespaces",
-                "field":"devices",
-                "enum":"namespaces:devices_sensorMultilevel:deviceName",
+                "field" : "optionLabels",
+                "optionLabels":"namespaces:devices_sensorMultilevel:deviceName",
                 "type":"select"
             },
             "temperature_outside_sensor":{
                 "label":"__temperature_outside_sensor_label__",
                 "helper":"__temperature_outside_sensor_helper__",
                 "datasource":"namespaces",
-                "field":"devices",
-                "enum":"namespaces:devices_sensorMultilevel:deviceName",
+                "field" : "optionLabels",
+                "optionLabels":"namespaces:devices_sensorMultilevel:deviceName",
                 "type":"select"
             }
         }
@@ -91,7 +92,6 @@
     "schema":{
         "properties":{
             "rules":{
-                "dependencies":"insulation_active",
                 "minItem":1,
                 "type":"array",
                 "items":{
@@ -139,7 +139,7 @@
             },
             "rain_sensor":{
                 "datasource":"namespaces",
-                "enum":"namespaces:devices_sensorMultilevel:deviceId",
+                "enum":"namespaces:devices_sensorBinary:deviceId",
                 "field":"enum",
                 "required":true
             },
