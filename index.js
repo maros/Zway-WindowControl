@@ -114,7 +114,7 @@ WindowControl.prototype.initCallback = function() {
 // --- Module methods
 // ----------------------------------------------------------------------------
 
-WindowControl.prototype.processAlarm = fuction(event) {
+WindowControl.prototype.processAlarm = function(event) {
     var self = this;
     
     var alarmed = true;
@@ -151,7 +151,7 @@ WindowControl.prototype.processAlarm = fuction(event) {
     });
 };
 
-WindowControl.prototype.processRain = fuction(event) {
+WindowControl.prototype.processRain = function(event) {
     var self = this;
     
     if (typeof(self.rainDevice) !== 'undefined') {
