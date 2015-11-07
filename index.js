@@ -100,7 +100,7 @@ WindowControl.prototype.initCallback = function() {
     
     if (typeof(self.config.rain_sensor) !== 'undefined') {
         var deviceObject = self.controller.devices.get(self.config.rain_sensor);
-        if (typeof(deviceObject) === 'undefined') {
+        if (deviceObject === null) {
             console.error('[WindowControl] Could not find rain device');
         } else {
             self.rainDevice = deviceObject;
@@ -138,7 +138,7 @@ WindowControl.prototype.processAlarm = function(event) {
     
     _.each(self.allDevices,function(deviceId) {
         var deviceObject = self.controller.devices.get(deviceId);
-        if (typeof(deviceObject) === 'undefined') {
+        if (deviceObject === null) {
             console.error('[WindowControl] Could not find window device '+deviceId);
             return;
         }
@@ -165,7 +165,7 @@ WindowControl.prototype.processRain = function(event) {
      // TODO check for smoke alarm
     _.each(self.allDevices ,function(deviceId) {
         var deviceObject = self.controller.devices.get(deviceId);
-        if (typeof(deviceObject) === 'undefined') {
+        if (deviceObject === null) {
             console.error('[WindowControl] Could not find window device '+deviceId);
             return;
         }
