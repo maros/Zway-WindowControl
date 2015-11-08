@@ -154,10 +154,10 @@ WindowControl.prototype.initCallback = function() {
         var deviceType  = vDev.get('deviceType');
         var porbeTitle  = vDev.get('metrics:probeTitle');
         if (deviceType === 'sensorMultilevel'
-            && porbeTitle === 'weather_forecast') {
+            && porbeTitle === 'WeatherUndergoundForecast') {
             self.forecastDevice = vDev;
         } else if (deviceType === 'sensorMultilevel'
-            && porbeTitle === 'weather_current') {
+            && porbeTitle === 'WeatherUndergoundCurrent') {
             self.conditionDevice = vDev;
         } else if (deviceType === 'switchBinary'
             && porbeTitle === 'precence') {
@@ -285,7 +285,7 @@ WindowControl.prototype.checkConditions = function() {
     // Winter mode
     // Summer mode
     
-        
+    /*
         -- Temp calulations for summer
         local mode = "default"
         if data.season == "summer" then
