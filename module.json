@@ -43,6 +43,14 @@
                     }
                 }
             },
+            "unitTemperature" : {
+                "label" : "__unit_temperature__",
+                "optionLabels" : [
+                   "°C",
+                   "°F"
+                ],
+                "order" : 4
+             },
             "min_temperature_outside":{
                 "label": "__min_temperature_outside_label__",
                 "helper": "__min_temperature_outside_helper__"
@@ -59,25 +67,25 @@
                 "optionLabels":"namespaces:devices_thermostat:deviceName",
                 "type":"select"
             },
-            "rain_sensor":{
-                "label":"__rain_sensor_label__",
-                "helper":"__rain_sensor_helper__",
+            "rain_sensor_device":{
+                "label":"__rain_sensor_device_label__",
+                "helper":"__rain_sensor_device_helper__",
                 "datasource":"namespaces",
                 "field" : "optionLabels",
                 "optionLabels":"namespaces:devices_sensorBinary:deviceName",
                 "type":"select"
             },
-            "wind_sensor":{
-                "label":"__wind_sensor_label__",
-                "helper":"__wind_sensor_helper__",
+            "wind_sensor_device":{
+                "label":"__wind_sensor_device_label__",
+                "helper":"__wind_sensor_device_helper__",
                 "datasource":"namespaces",
                 "field" : "optionLabels",
                 "optionLabels":"namespaces:devices_sensorMultilevel:deviceName",
                 "type":"select"
             },
-            "temperature_outside_sensor":{
-                "label":"__temperature_outside_sensor_label__",
-                "helper":"__temperature_outside_sensor_helper__",
+            "temperature_outside_sensor_device":{
+                "label":"__temperature_outside_sensor_device_label__",
+                "helper":"__temperature_outside_sensor_device_helper__",
                 "datasource":"namespaces",
                 "field" : "optionLabels",
                 "optionLabels":"namespaces:devices_sensorMultilevel:deviceName",
@@ -122,6 +130,13 @@
                     }
                 }
             },
+            "unitTemperature" : {
+                "enum" : [
+                   "celsius",
+                   "fahrenheit"
+                ],
+                "required" : true
+             },
             "min_temperature_outside":{
                 "type":"number",
                 "default":10,
@@ -137,19 +152,19 @@
                 "enum":"namespaces:devices_thermostat:deviceId",
                 "field":"enum"
             },
-            "rain_sensor":{
+            "rain_sensor_device":{
                 "datasource":"namespaces",
                 "enum":"namespaces:devices_sensorBinary:deviceId",
                 "field":"enum",
                 "required":true
             },
-            "wind_sensor":{
+            "wind_sensor_device":{
                 "datasource":"namespaces",
                 "enum":"namespaces:devices_sensorMultilevel:deviceId",
                 "field":"enum",
                 "required":true
             },
-            "temperature_outside_sensor":{
+            "temperature_outside_sensor_device":{
                 "datasource":"namespaces",
                 "enum":"namespaces:devices_sensorMultilevel:deviceId",
                 "field":"enum",
