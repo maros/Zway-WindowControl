@@ -17,6 +17,8 @@ function WindowControl (id, controller) {
     this.allDevices         = [];
     this.thermostatDevice   = undefined;
     this.rainDevice         = undefined;
+    this.presenceDevice     = undefined;
+    this.conditionDevice    = undefined;
     this.forecastDevice     = undefined;
     this.alarmCallback      = undefined;
     this.rainCallback       = undefined;
@@ -149,10 +151,17 @@ WindowControl.prototype.initCallback = function() {
     }
     
     self.controller.devices.each(function(vDev) {
-        var deviceType = vDev.get('deviceType');
+        var deviceType  = vDev.get('deviceType');
+        var porbeTitle  = vDev.get('metrics:probeTitle');
         if (deviceType === 'sensorMultilevel'
-            && vDev.get('metrics:probeTitle') === 'weather_forecast') {
+            && porbeTitle === 'weather_forecast') {
             self.forecastDevice = vDev;
+        } else if (deviceType === 'sensorMultilevel'
+            && porbeTitle === 'weather_current') {
+            self.conditionDevice = vDev;
+        } else if (deviceType === 'switchBinary'
+            && porbeTitle === 'precence') {
+            self.presenceDevice = vDev;
         }
     });
 };
@@ -233,31 +242,49 @@ WindowControl.prototype.checkConditions = function() {
         }
     }
     
-    var windLevel = self.getDeviceData('wind_sensor');
+    // Check wind level
+    var windLevel   = self.getDeviceData('wind_sensor');
+    var windMax     = self.config.max_wind;
     if (typeof(windLevel) !== 'undefined'
-        && self.config.max_wind > windLevel) {
+        && windMax > windLevel) {
         console.log('[WindowControl] Closing all windows due to wind');
         self.moveDevices(self.allDevices,255);
         return;
     }
     
+    // Get desired temperature
+    var thermostatLevel = self.getDeviceData('thermostat');
+    if (typeof(thermostatLevel) === 'undefined') {
+        console.error('[WindowControl] Cannot find thermostat device');
+        return;
+    }
+    
+    // Set window position to 100%
+    var position    = 100;
+    
+    // Get window position based on POP
+    if (typeof(self.currentDevice) !== 'undefined') {
+        var pop         = self.currentDevice.get('metrics:pop');
+        var condition   = self.currentDevice.get('metrics:condition');
+        if (pop > 50
+            && condition !== 'clear'
+            && condition !== 'mostlysunny') {
+            position = position - pop + 30;
+        }
+    }
+    
+    // Get window position based on wind
+    if (windLevel >= (windMax / 2)) {
+        var windSteps       = (windMax / 2);
+        var maxPosition     = (windLevel-windSteps) / windSteps * 100;
+        maxPosition         = Math.max(25,maxPosition);
+        position            = Math.min(position,maxPosition);
+    }
+    
+    
     // Winter mode
     // Summer mode
     
-    /*
-     * -- Do not open fully if pop or wind high
-        if weather_status.pop > 50 
-            and weather_status.condition_group ~= 'clear'
-            and weather_status.condition_group ~= 'mostlysunny' then
-            position = position - weather_status.pop + 30
-        end
-        if weather_status.wind_speed >= (WINDOWS.WIND_SPEED_LIMIT / 8 * 7) then -- 26 kmh
-            position = math.min(position,25)
-        elseif weather_status.wind_speed >= (WINDOWS.WIND_SPEED_LIMIT / 4 * 3) then -- 22 kmh
-            position = math.min(position,50)
-        elseif weather_status.wind_speed >= (WINDOWS.WIND_SPEED_LIMIT / 2) then -- 15 kmh
-            position = math.min(position,75)
-        end
         
         -- Temp calulations for summer
         local mode = "default"
