@@ -8,7 +8,12 @@ TODO
 
 # Events
 
-TODO
+No events are emitted.
+
+Window controller always listens to security.smoke.alarm and 
+security.smoke.cancel events (these events are usually emitted by 
+( https://github.com/maros/Zway-SecurityZone ). In case of a smoke alarm all 
+windows managed by the controller are automatically opened.
 
 # Virtual Devices
 
