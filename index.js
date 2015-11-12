@@ -40,7 +40,7 @@ WindowControl.prototype.init = function (config) {
     var langFile = self.controller.loadModuleLang("WindowControl");
     
     // Create vdev
-    this.vDev = this.controller.devices.create({
+    this.controlDevice = this.controller.devices.create({
         deviceId: "WindowControl_" + this.id,
         defaults: {
             metrics: {
@@ -100,20 +100,20 @@ WindowControl.prototype.init = function (config) {
 WindowControl.prototype.stop = function () {
     var self = this;
     
-    if (self.vDev) {
-        self.controller.devices.remove(self.vDev.id);
-        self.vDev = undefined;
-    }
-    
-    if (typeof(self.interval) !== 'undefined') {
-        clearInterval(self.interval);
-        self.interval = undefined;
+    if (self.controlDevice) {
+        self.controller.devices.remove(self.controlDevice.id);
+        self.controlDevice = undefined;
     }
     
     if (typeof(self.config.thermostat_device) === 'undefined') {
         self.controller.devices.remove(self.thermostatDevice.id);
     }
+
     self.thermostatDevice = undefined;
+    if (typeof(self.interval) !== 'undefined') {
+        clearInterval(self.interval);
+        self.interval = undefined;
+    }
     
     self.controller.off('security.smoke.alarm',self.alarmCallback);
     self.controller.off('security.smoke.cancel',self.alarmCallback);
