@@ -63,7 +63,7 @@ WindowControl.prototype.init = function (config) {
     });
     
     // Setup thermostat
-    if (typeof(self.config.thermostat_device) === 'undefined') {
+    if (typeof(self.config.thermostatDevice) === 'undefined') {
         self.thermostatDevice = self.controller.devices.create({
             deviceId: "WindowControl_Thermostat_" + self.id,
             defaults: {
@@ -105,7 +105,7 @@ WindowControl.prototype.stop = function () {
         self.controlDevice = undefined;
     }
     
-    if (typeof(self.config.thermostat_device) === 'undefined') {
+    if (typeof(self.config.thermostatDevice) === 'undefined') {
         self.controller.devices.remove(self.thermostatDevice.id);
     }
 
@@ -136,12 +136,12 @@ WindowControl.prototype.initCallback = function() {
     });
     self.allDevices = _.uniq(_.flatten(devices));
     
-    if (typeof(self.config.thermostat_device) !== 'undefined') {
+    if (typeof(self.config.thermostatDevice) !== 'undefined') {
         self.thermostatDevice = self.getDevice('thermostat');
     }
     
-    if (typeof(self.config.rain_sensor) !== 'undefined') {
-        var deviceObject = self.controller.devices.get(self.config.rain_sensor);
+    if (typeof(self.config.rainSensor) !== 'undefined') {
+        var deviceObject = self.controller.devices.get(self.config.rainSensor);
         if (deviceObject === null) {
             console.error('[WindowControl] Could not find rain device');
         } else {
@@ -243,8 +243,8 @@ WindowControl.prototype.checkConditions = function() {
     }
     
     // Check wind level
-    var windLevel   = self.getDeviceData('wind_sensor');
-    var windMax     = self.config.max_wind;
+    var windLevel   = self.getDeviceData('windSensor');
+    var windMax     = self.config.maxWind;
     if (typeof(windLevel) !== 'undefined'
         && windMax > windLevel) {
         console.log('[WindowControl] Closing all windows due to wind');

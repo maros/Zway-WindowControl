@@ -18,7 +18,7 @@
                 "label": "__rules_label__",
                 "items":{
                     "fields":{
-                        "temperature_inside_sensor":{
+                        "temperatureInsideSensor":{
                             "label":"__temperature_inside_sensor_label__",
                             "fields":{
                                 "item":{
@@ -51,15 +51,15 @@
                 ],
                 "order" : 4
              },
-            "min_temperature_outside":{
+            "minTemperatureOutside":{
                 "label": "__min_temperature_outside_label__",
                 "helper": "__min_temperature_outside_helper__"
             },
-            "max_wind":{
+            "maxWind":{
                 "label": "__max_wind_label__",
                 "helper": "__max_wind_helper__"
             },
-            "thermostat_device":{
+            "thermostatDevice":{
                 "label":"__thermostat_device_label__",
                 "helper":"__thermostat_device_helper__",
                 "datasource":"namespaces",
@@ -67,7 +67,7 @@
                 "optionLabels":"namespaces:devices_thermostat:deviceName",
                 "type":"select"
             },
-            "rain_sensor_device":{
+            "rainSensorDevice":{
                 "label":"__rain_sensor_device_label__",
                 "helper":"__rain_sensor_device_helper__",
                 "datasource":"namespaces",
@@ -75,7 +75,7 @@
                 "optionLabels":"namespaces:devices_sensorBinary:deviceName",
                 "type":"select"
             },
-            "wind_sensor_device":{
+            "windSensorDevice":{
                 "label":"__wind_sensor_device_label__",
                 "helper":"__wind_sensor_device_helper__",
                 "datasource":"namespaces",
@@ -83,7 +83,7 @@
                 "optionLabels":"namespaces:devices_sensorMultilevel:deviceName",
                 "type":"select"
             },
-            "temperature_outside_sensor_device":{
+            "temperatureOutsideSensorDevice":{
                 "label":"__temperature_outside_sensor_device_label__",
                 "helper":"__temperature_outside_sensor_device_helper__",
                 "datasource":"namespaces",
@@ -105,7 +105,7 @@
                 "items":{
                     "type":"object",
                     "properties":{
-                        "temperature_inside_sensor":{
+                        "temperatureInsideSensor":{
                             "type":"array",
                             "items":{
                                 "datasource":"namespaces",
@@ -137,34 +137,34 @@
                 ],
                 "required" : true
              },
-            "min_temperature_outside":{
+            "minTemperatureOutside":{
                 "type":"number",
                 "default":10,
                 "required":true
             },
-            "max_wind":{
+            "maxWind":{
                 "type":"number",
                 "default":30,
                 "required":true
             },
-            "thermostat_device":{
+            "thermostatDevice":{
                 "datasource":"namespaces",
                 "enum":"namespaces:devices_thermostat:deviceId",
                 "field":"enum"
             },
-            "rain_sensor_device":{
+            "rainSensorDevice":{
                 "datasource":"namespaces",
                 "enum":"namespaces:devices_sensorBinary:deviceId",
                 "field":"enum",
                 "required":true
             },
-            "wind_sensor_device":{
+            "windSensorDevice":{
                 "datasource":"namespaces",
                 "enum":"namespaces:devices_sensorMultilevel:deviceId",
                 "field":"enum",
                 "required":true
             },
-            "temperature_outside_sensor_device":{
+            "temperatureOutsideSensorDevice":{
                 "datasource":"namespaces",
                 "enum":"namespaces:devices_sensorMultilevel:deviceId",
                 "field":"enum",
