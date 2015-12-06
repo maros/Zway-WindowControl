@@ -160,7 +160,7 @@ WindowControl.prototype.initCallback = function() {
             && probeTitle === 'WeatherUndergoundCurrent') {
             self.conditionDevice = vDev;
         } else if (deviceType === 'switchBinary'
-            && porbeTitle === 'precence') {
+            && vDev.get('probeType') === 'Precence') {
             self.presenceDevice = vDev;
         }
     });
@@ -175,17 +175,16 @@ WindowControl.prototype.processAlarm = function(event) {
     var self = this;
     
     var alarmed = true;
-    var present = true;
+    var present = self.presenceDevice.get('metrics:level') === 'off'? false:true;
     self.controller.devices.each(function(vDev) {
         var probeTitle = vDev.get('metrics:probeTitle');
+        var probeType = vDev.get('probeType');
         if (probeTitle === 'security'
             && vDev.get('metrics:securityType') === 'smoke') {
             var state = vDev.get('metrics:state');
             if (state !== 'alarm' || state !== 'timeout') {
                 alarmed = false;
             }
-        } else if (probeTitle === 'presence') {
-            present = vDev.get('metrics:level') === 'off'? false:true;
         }
     });
     
