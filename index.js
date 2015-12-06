@@ -78,7 +78,7 @@ WindowControl.prototype.init = function (config) {
                 deviceType: 'thermostat'
             },
             handler: function(command, args) {
-                if (command === 'excact') {
+                if (command === 'exact') {
                     self.thermostatDevice.set('metrics.level',args.level);
                 }
             },
@@ -152,12 +152,12 @@ WindowControl.prototype.initCallback = function() {
     
     self.controller.devices.each(function(vDev) {
         var deviceType  = vDev.get('deviceType');
-        var porbeTitle  = vDev.get('metrics:probeTitle');
+        var probeTitle  = vDev.get('metrics:probeTitle');
         if (deviceType === 'sensorMultilevel'
-            && porbeTitle === 'WeatherUndergoundForecast') {
+            && probeTitle === 'WeatherUndergoundForecast') {
             self.forecastDevice = vDev;
         } else if (deviceType === 'sensorMultilevel'
-            && porbeTitle === 'WeatherUndergoundCurrent') {
+            && probeTitle === 'WeatherUndergoundCurrent') {
             self.conditionDevice = vDev;
         } else if (deviceType === 'switchBinary'
             && porbeTitle === 'precence') {
