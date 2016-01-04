@@ -17,7 +17,6 @@ function WindowControl (id, controller) {
     this.allDevices         = [];
     this.thermostatDevice   = undefined;
     this.rainDevice         = undefined;
-    this.presenceDevice     = undefined;
     this.conditionDevice    = undefined;
     this.forecastDevice     = undefined;
     this.alarmCallback      = undefined;
@@ -159,9 +158,6 @@ WindowControl.prototype.initCallback = function() {
         } else if (deviceType === 'sensorMultilevel'
             && probeTitle === 'WeatherUndergoundCurrent') {
             self.conditionDevice = vDev;
-        } else if (deviceType === 'switchBinary'
-            && vDev.get('probeType') === 'Precence') {
-            self.presenceDevice = vDev;
         }
     });
 };
@@ -175,7 +171,8 @@ WindowControl.prototype.processAlarm = function(event) {
     var self = this;
     
     var alarmed = true;
-    var present = self.presenceDevice.get('metrics:level') === 'off'? false:true;
+    
+    var presence = self.getPresenceBoolean();
     self.controller.devices.each(function(vDev) {
         var probeTitle = vDev.get('metrics:probeTitle');
         var probeType = vDev.get('probeType');
