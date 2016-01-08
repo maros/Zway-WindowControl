@@ -1,5 +1,5 @@
 {
-   "description" : "Control window drives for optimal temperature regulation, ventilation and security",
+   "m_descr" : "Control window drives for optimal temperature regulation, ventilation and security",
    "devices_label" : "Devices",
    "max_wind_helper" : "Will close windows if max wind speed is reached. Windows are only partially opened when the wind speed aproaches the threshold",
    "max_wind_label" : "Max wind",
@@ -13,7 +13,7 @@
    "temperature_outside_sensor_label" : "Outdoor temperature sensor",
    "thermostat_device_helper" : "A thermostat module to set the desired temperature. If none is seelcted, this module will create a virtual thermostat",
    "thermostat_device_label" : "Thermostat",
-   "title" : "Window control",
+   "m_title" : "Window control",
    "wind_sensor_helper" : "A wind weather data widget may be used instead of a physical device",
    "wind_sensor_label" : "Wind sensor"
 }

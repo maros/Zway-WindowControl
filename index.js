@@ -43,7 +43,7 @@ WindowControl.prototype.init = function (config) {
         deviceId: "WindowControl_" + this.id,
         defaults: {
             metrics: {
-                title: langFile.title,
+                title: langFile.m_title,
                 level: 'off',
                 icon: '/ZAutomation/api/v1/load/modulemedia/WindowControl/icon_off.png'
             }
@@ -215,7 +215,7 @@ WindowControl.prototype.processRain = function(event) {
     }
     
     console.log('[WindowControl] Detected rain. Closing all windows');
-     // TODO check for smoke alarm
+    // TODO check for smoke alarm
     
     self.moveDevices(self.allDevices,255);
 };
