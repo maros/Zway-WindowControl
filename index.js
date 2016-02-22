@@ -232,16 +232,6 @@ WindowControl.prototype.processRain = function(event) {
 
 WindowControl.prototype.checkConditions = function() {
     var self = this;
-
-    self.log('Evaluating window positions');
-    
-    _.each(self.modes,function(type) {
-        this[type+'Device'] = undefined;
-    });
-    
-    if (self.vDev.get('metrics:level') === 'off') {
-        return;
-    }
     
     // Check rain
     if (typeof(self.rainSensorDevice) !== 'undefined') {
@@ -262,6 +252,37 @@ WindowControl.prototype.checkConditions = function() {
         self.moveDevices(self.allDevices,255);
         return;
     }
+    
+    _.each(self.modes,function(type) {
+        if (self.config[type+'Active']
+            && self[type+'Device'].get('metrics:level') === 'on') {
+            self.log('Evaluating '+type+' window positions');
+            self[type+'Process']();
+        }
+    });
+};
+
+WindowControl.prototype.winterProcess = function() {
+    var self = this;
+    
+    // TODO
+};
+
+WindowControl.prototype.summerProcess = function() {
+    var self = this;
+    
+    // TODO
+};
+
+WindowControl.prototype.ventilateProcess = function() {
+    var self = this;
+    
+    // TODO
+};
+   
+   
+/*
+
     
     // Get desired temperature
     var thermostatLevel = self.getDeviceData('thermostat');
@@ -296,7 +317,7 @@ WindowControl.prototype.checkConditions = function() {
     // Winter mode
     // Summer mode
     
-    /*
+    
         -- Temp calulations for summer
         local mode = "default"
         if data.season == "summer" then
@@ -447,7 +468,6 @@ WindowControl.prototype.checkConditions = function() {
         end
 
      */
-};
 
 WindowControl.prototype.getDevice = function(type) {
     var self = this;
