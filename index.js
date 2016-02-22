@@ -1,6 +1,6 @@
 /*** WindowControl Z-Way HA module *******************************************
 
-Version: 1.02
+Version: 1.00
 (c) Maroš Kollár, 2015
 -----------------------------------------------------------------------------
 Author: Maroš Kollár <maros@k-1.com>
@@ -22,8 +22,6 @@ function WindowControl (id, controller) {
     
     this.thermostatDevice       = undefined;
     this.rainSensorDevice       = undefined;
-    this.conditionDevice        = undefined;
-    this.forecastDevice         = undefined;
     this.alarmCallback          = undefined;
     this.rainCallback           = undefined;
     this.interval               = undefined;
@@ -56,7 +54,7 @@ WindowControl.prototype.init = function (config) {
                         icon: '/ZAutomation/api/v1/load/modulemedia/WindowControl/icon_'+type+'_off.png'
                     }
                 },
-                handler: _.bind(self.commandDevice,self,type),
+                handler: _.bind(self.commandModeDevice,self,type),
                 overlay: {
                     probeType: 'WindowController',
                     deviceType: 'switchBinary'
@@ -68,7 +66,7 @@ WindowControl.prototype.init = function (config) {
     
     // Setup thermostat
     if (self.config.summerActive
-        && typeof(self.config.thermostatDevice) === 'undefined') {
+        && typeof(self.config.summerRules.thermostatDevice) === 'undefined') {
         self.thermostatDevice = self.controller.devices.create({
             deviceId: "WindowControl_Thermostat_" + self.id,
             defaults: {
@@ -118,7 +116,8 @@ WindowControl.prototype.stop = function () {
     });
     
     // Setup thermostat
-    if (typeof(self.config.thermostatDevice) === 'undefined') {
+    if (self.config.summerActive
+        && typeof(self.config.summerRules.thermostatDevice) === 'undefined') {
         self.controller.devices.remove(self.thermostatDevice.id);
     }
     self.thermostatDevice = undefined;
@@ -134,6 +133,7 @@ WindowControl.prototype.stop = function () {
     self.controller.off('security.smoke.cancel',self.alarmCallback);
     self.controller.off('security.smoke.stop',self.alarmCallback);
     
+    // Unbind rain callbacks
     self.controller.off('rain.start',self.rainCallback);
     if (typeof(self.rainSensorDevice) !== 'undefined') {
         self.rainSensorDevice.off('change:metrics:level',self.rainCallback);
@@ -157,22 +157,24 @@ WindowControl.prototype.initCallback = function() {
     self.allDevices = _.uniq(_.flatten(devices));
     
     // Get thermostat device
-    if (typeof(self.config.thermostatDevice) !== 'undefined') {
-        self.thermostatDevice = self.getDevice('thermostat');
+    if (self.config.summerActive
+        && typeof(self.config.summerRules.thermostatDevice) !== 'undefined') {
+        self.thermostatDevice = self.getDevice(self.config.summerRules.thermostatDevice);
     }
     
     // Get rain sensor
     if (typeof(self.config.rainSensor) !== 'undefined') {
-        self.rainSensorDevice = self.getDevice('rainSensor');
+        self.rainSensorDevice = self.getDevice(self.config.rainSensorDevice);
         if (typeof(self.rainSensorDevice) !== 'undefined') {
             self.rainSensorDevice.on('change:metrics:level',self.rainCallback);
         }
     }
     
     // Get all devices
+    /*
     self.controller.devices.each(function(vDev) {
-        var deviceType  = vDev.get('deviceType');
-        var probeTitle  = vDev.get('metrics:probeTitle');
+        var deviceType = vDev.get('deviceType');
+        var probeTitle = vDev.get('metrics:probeTitle');
         if (deviceType === 'sensorMultilevel'
             && probeTitle === 'WeatherUndergoundForecast') {
             self.forecastDevice = vDev;
@@ -181,6 +183,7 @@ WindowControl.prototype.initCallback = function() {
             self.conditionDevice = vDev;
         }
     });
+    */
 };
 
 
@@ -191,29 +194,15 @@ WindowControl.prototype.initCallback = function() {
 WindowControl.prototype.processAlarm = function(event) {
     var self = this;
     
-    var alarmed = true;
-    
     var presence = self.getPresenceBoolean();
-    self.controller.devices.each(function(vDev) {
-        var probeTitle = vDev.get('metrics:probeTitle');
-        var probeType = vDev.get('probeType');
-        if (probeTitle === 'security'
-            && vDev.get('metrics:securityType') === 'smoke') {
-            var state = vDev.get('metrics:state');
-            if (state !== 'alarm' || state !== 'timeout') {
-                alarmed = false;
-            }
-        }
-    });
+    self.log('Smoke alarm');
+    console.logJS(event);
     
-    if (alarmed) {
-        console.log('[WindowControl] Opening all windows due to smoke alarm');
-    }
-    
+    /*
     _.each(self.allDevices,function(deviceId) {
         var deviceObject = self.controller.devices.get(deviceId);
         if (deviceObject === null) {
-            console.error('[WindowControl] Could not find window device '+deviceId);
+            self.error('Could not find window device '+deviceId);
             return;
         }
         if (alarm === true && present === true) {
@@ -223,6 +212,7 @@ WindowControl.prototype.processAlarm = function(event) {
             deviceObject.set('metrics:auto',false);
         }
     });
+    */
 };
 
 WindowControl.prototype.processRain = function(event) {
@@ -235,7 +225,7 @@ WindowControl.prototype.processRain = function(event) {
         }
     }
     
-    console.log('[WindowControl] Detected rain. Closing all windows');
+    self.log('Detected rain. Closing all windows');
     
     self.moveDevices(self.allDevices,255);
 };
@@ -243,7 +233,12 @@ WindowControl.prototype.processRain = function(event) {
 WindowControl.prototype.checkConditions = function() {
     var self = this;
 
-    console.log('[WindowControl] Evaluating window positions');
+    self.log('Evaluating window positions');
+    
+    _.each(self.modes,function(type) {
+        this[type+'Device'] = undefined;
+    });
+    
     if (self.vDev.get('metrics:level') === 'off') {
         return;
     }
@@ -252,18 +247,18 @@ WindowControl.prototype.checkConditions = function() {
     if (typeof(self.rainSensorDevice) !== 'undefined') {
         var level = self.rainSensorDevice.get('metrics:level');
         if (level === 'on') {
-            console.log('[WindowControl] Closing all windows due to rain');
+            self.log('Closing all windows due to rain');
             self.moveDevices(self.allDevices,255);
             return;
         }
     }
     
     // Check wind level
-    var windLevel   = self.getDeviceData('windSensor');
+    var windLevel   = self.getDeviceData(self.config.windSensorDevice);
     var windMax     = self.config.maxWind;
     if (typeof(windLevel) !== 'undefined'
         && windMax > windLevel) {
-        console.log('[WindowControl] Closing all windows due to wind');
+        self.log('Closing all windows due to wind');
         self.moveDevices(self.allDevices,255);
         return;
     }
@@ -271,7 +266,7 @@ WindowControl.prototype.checkConditions = function() {
     // Get desired temperature
     var thermostatLevel = self.getDeviceData('thermostat');
     if (typeof(thermostatLevel) === 'undefined') {
-        console.error('[WindowControl] Cannot find thermostat device');
+        self.error('Cannot find thermostat device');
         return;
     }
     
@@ -476,20 +471,41 @@ WindowControl.prototype.getDeviceData = function(type) {
     return deviceObject.get('metrics:level');
 };
 
+WindowControl.prototype.commandModeDevice = function(type,command,args) {
+    var self = this;
+    
+    var device = self[type+'Device'];
+    if (command !== 'on' && command !== 'off')
+        return;
+    
+    // Turn off other device
+    if (command === 'on') {
+        if (type === 'winter' && self.config.summerActive) {
+            self.summerDevice.performCommand('off');
+        } else if (type === 'summer' && self.config.winterActive) {
+            self.summerDevice.performCommand('off');
+        }
+    }
+    
+    device.set('metrics:level',command);
+    device.set("metrics:icon", "/ZAutomation/api/v1/load/modulemedia/WindowControl/icon_"+type+"_"+command+".png");
+
+};
+
 WindowControl.prototype.moveDevices = function(devices,position) {
     var self = this;
     
     _.each(devices,function(deviceId) {
         var deviceObject = self.controller.devices.get(deviceId);
         if (deviceObject === null) {
-            console.error('[WindowControl] Could not find window device '+deviceId);
+            self.error('Could not find window device '+deviceId);
             return;
         }
         var deviceAuto = deviceObject.get('metrics:auto');
         if ((position < 255 && deviceAuto === false) || (position === 255 && deviceAuto === true)) {
             return;
         }
-        console.error('[WindowControl] Auto move window '+deviceId+' to '+position);
+        self.error('Auto move window '+deviceId+' to '+position);
         if (position < 255) {
             deviceObject.set('metrics:auto',true);
             deviceObject.performCommand('on');
