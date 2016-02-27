@@ -115,7 +115,7 @@ WindowControl.prototype.init = function (config) {
                     },
                     moduleId: self.id
                 })
-            });
+            );
         });
     }
     
@@ -310,7 +310,57 @@ WindowControl.prototype.checkConditions = function() {
 WindowControl.prototype.winterProcess = function() {
     var self = this;
     
-    // TODO
+    self.log('Process winter rules');
+    var temperatureOutsideDevice    = self.getDevice(self.config.temperatureOutsideSensorDevice);
+    var temperatureOutside          = temperatureOutsideDevice.get('metrics:value');
+    var now                         = Math.floor(new Date().getTime() / 1000);
+    var limit                       = now - self.config.winterRules.maxOpenTime * 60;
+    var targetPos                   = 100; // TODO sane targetPos
+    
+    _.each(self.config.zones,function(zone,index) {
+        var temperatureInsideDevice = self.getDevice(zone.temperatureSensor);
+        var temperatureInside = temperatureInsideDevice.get('metrics:value');
+        var zoneStatus = self.winterDevice.get('metrics:zone'+index) || false;
+        
+        _.each(zone.windowDevices,function(deviceId) {
+            var deviceObject = self.controller.devices.get(deviceId);
+            if (deviceObject === null) {
+                return;
+            }
+            var action      = 'keep';
+            var deviceAuto  = deviceObject.get('metrics:auto') || false;
+            var deviceLevel = deviceObject.get('metrics:level') || 0;
+            var deviceMode  = deviceObject.get('metrics:windowMode') || 'none';
+            var lastChange  = deviceObject.get('metrics:modificationTime') || now;
+            
+            // TODO sanity check
+            if (temperatureOutside > (temperatureInside + 0.2)
+                && deviceMode === 'none') {
+                action = 'open';
+                self.log('Opening window in zone '+index+' due to high outside temperature');
+            } else if (deviceMode === 'winter'
+                && deviceAuto === true
+                && temperatureOutside <= temperatureInside) {
+                action = 'close';
+                self.log('Closing window in zone '+index+' after it was opened due to high outside temperature');
+            } else if (deviceAuto === true
+                && deviceLevel > 0
+                && lastChange < limit) {
+                action = 'close';
+                self.log('Closing window in zone '+index+' max winter open time');
+            }
+            
+            if (action === 'close') {
+                deviceObject.performCommand('off');
+                deviceObject.set('metrics:windowMode','none');
+                deviceObject.set('metrics:auto',false);
+            } else if (action === 'open') {
+                deviceObject.performCommand('exact', { level: targetPos });
+                deviceObject.set('metrics:windowMode','winter');
+                deviceObject.set('metrics:auto',true );
+            }
+        });
+    });
 };
 
 WindowControl.prototype.summerProcess = function() {
@@ -550,14 +600,34 @@ WindowControl.prototype.commandModeDevice = function(type,command,args) {
 };
 
 WindowControl.prototype.commandVentilateZone = function(zone,args) {
-    var self    = this;
-    args        = args || {};
+    var self            = this;
+    args                = args || {};
+    var forceVentilate  = args.force || false;
+    var duration        = args.duration;
+    var last            = args.last || 60;
     
     // Check wind & rain
     if (self.checkRain() || self.checkWind()) {
         self.log('Ignoring ventilation due to wind/rain');
         return;
     }
+    
+    if (typeof(duration) === 'undefined') {
+        // TODO calulate duration
+    }
+    
+    self.processDeviceList(self.config.zones[zone].windowSensors,function(deviceObject) {
+        // TODO Get window status
+    });
+    
+    self.processDeviceList(self.config.zones[zone].windowDevices,function(deviceObject) {
+        var deviceAuto  = deviceObject.get('metrics:auto') || false;
+        var deviceLevel = deviceObject.get('metrics:level') || 0;
+        var deviceMode  = deviceObject.get('metrics:windowMode') || 'none';
+        var lastChange  = deviceObject.get('metrics:modificationTime') || now;
+        
+        // TODO
+    });
     
     // TODO
 };

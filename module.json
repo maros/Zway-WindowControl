@@ -108,16 +108,12 @@
                                 "__optimize_temperature__"
                              ]
                         },
-                        "temperatureSensors":{
+                        "temperatureSensor":{
                             "label":"__temperature_inside_sensor_label__",
-                            "fields":{
-                                "item":{
-                                    "datasource":"namespaces",
-                                    "field" : "optionLabels",
-                                    "optionLabels":"namespaces:devices_sensorMultilevel:deviceName",
-                                    "type":"select"
-                                }
-                            }
+                            "datasource":"namespaces",
+                            "field" : "optionLabels",
+                            "optionLabels":"namespaces:devices_sensorMultilevel:deviceName",
+                            "type":"select"
                         },
                         "windowDevices":{
                             "label":"__window_devices_label__",
@@ -209,16 +205,11 @@
                              ],
                              "default": "temperature"
                         },
-                        "temperatureSensors":{
-                            "type":"array",
-                            "items":{
-                                "datasource":"namespaces",
-                                "enum":"namespaces:devices_sensorMultilevel:deviceId",
-                                "field":"enum",
-                                "required":true
-                            },
-                            "minItems":1,
-                            "uniqueItems":true
+                        "temperatureSensor":{
+                            "datasource":"namespaces",
+                            "enum":"namespaces:devices_sensorMultilevel:deviceId",
+                            "field":"enum",
+                            "required":true
                         },
                         "windowDevices":{
                             "type":"array",
@@ -314,6 +305,10 @@
                 "dependencies" : "winterActive",
                 "type": "object",
                 "properties": {
+                    "maxOpenTime": {
+                        "default": 60,
+                        "type": "number"
+                    }
                 }
             },
             "winterActive" : {
