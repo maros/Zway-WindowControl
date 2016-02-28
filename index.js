@@ -26,7 +26,8 @@ function WindowControl (id, controller) {
     this.alarmCallback              = undefined;
     this.rainCallback               = undefined;
     this.interval                   = undefined;
-    
+    this.cronName                   = undefined;
+
 }
 
 inherits(WindowControl, BaseModule);
@@ -41,6 +42,7 @@ WindowControl.prototype.init = function (config) {
     WindowControl.super_.prototype.init.call(this, config);
 
     var self = this;
+    self.cronName = "WindowControl.ventilate."+self.id;
     
     // Create control devices
     _.each(self.modes,function(type) {
@@ -92,6 +94,19 @@ WindowControl.prototype.init = function (config) {
     
     // Setup ventilation controller
     if (self.config.ventilateActive) {
+        self.controller.on(self.cronName,_.bind(self.ventilateProcess,self));
+        
+        _.each(self.config.ventilationRules.time,function(time) {
+            var time = self.parseTime(time);
+            self.controller.emit("cron.addTask",self.cronName, {
+                minute:     time.getMinutes(),
+                hour:       time.getHours(),
+                weekDay:    null,
+                day:        null,
+                month:      null,
+            });
+        });
+        
         _.each(self.deviceId,function(zone,index) {
             self.ventilationControlDevices.push(
                 self.controller.devices.create({
@@ -120,13 +135,15 @@ WindowControl.prototype.init = function (config) {
     }
     
     // Setup event callbacks
-    self.alarmCallback  = _.bind(self.processAlarm,self);
-    self.rainCallback   = _.bind(self.processRain,self);
+    self.alarmCallback      = _.bind(self.processAlarm,self);
+    self.rainCallback       = _.bind(self.processRain,self);
+    self.ventilateCallback  = _.bind(self.processVentilate,self);
     
     self.controller.on('security.smoke.alarm',self.alarmCallback);
     self.controller.on('security.smoke.cancel',self.alarmCallback);
     self.controller.on('security.smoke.stop',self.alarmCallback);
     self.controller.on('rain.start',self.rainCallback);
+    self.controller.on(self.cronName,self.ventilateCallback);
     
     // Start check interval
     self.interval = setInterval(_.bind(self.checkConditions,self),1000*60*3);
@@ -170,6 +187,7 @@ WindowControl.prototype.stop = function () {
     self.controller.off('security.smoke.alarm',self.alarmCallback);
     self.controller.off('security.smoke.cancel',self.alarmCallback);
     self.controller.off('security.smoke.stop',self.alarmCallback);
+    self.controller.off(self.cronName,self.ventilateCallback);
     
     // Unbind rain callbacks
     self.controller.off('rain.start',self.rainCallback);
@@ -178,8 +196,12 @@ WindowControl.prototype.stop = function () {
         self.rainSensorDevice = undefined;
     }
     
-    self.alarmCallback = undefined;
-    self.rainCallback = undefined;
+    // Remove cron
+    self.controller.emit("cron.removeTask", self.cronName);
+    
+    self.alarmCallback      = undefined;
+    self.rainCallback       = undefined;
+    self.ventilateCallback  = undefined;
     
     WindowControl.super_.prototype.stop.call(this);
 };
@@ -197,12 +219,12 @@ WindowControl.prototype.initCallback = function() {
     // Get thermostat device
     if (self.config.summerActive
         && typeof(self.config.summerRules.thermostatDevice) !== 'undefined') {
-        self.thermostatDevice = self.getDevice(self.config.summerRules.thermostatDevice);
+        self.thermostatDevice = self.getDeviceById(self.config.summerRules.thermostatDevice);
     }
     
     // Get rain sensor
     if (typeof(self.config.rainSensor) !== 'undefined') {
-        self.rainSensorDevice = self.getDevice(self.config.rainSensorDevice);
+        self.rainSensorDevice = self.getDeviceById(self.config.rainSensorDevice);
         if (typeof(self.rainSensorDevice) !== 'undefined') {
             self.rainSensorDevice.on('change:metrics:level',self.rainCallback);
         }
@@ -267,14 +289,14 @@ WindowControl.prototype.checkWind = function () {
     var self = this;
     
     // Check rain
-    var windDevice = self.getDevice(self.config.windSensorDevice);
+    var windDevice = self.getDeviceById(self.config.windSensorDevice);
     if (typeof(windDevice) !== 'undefined') {
         var windMax     = self.config.maxWind;
         var windLevel   = windDevice.get('metrics:level');
         // Check wind level
         if (typeof(windLevel) !== 'undefined'
             && windMax > windLevel) {
-            return trie;
+            return true;
         }
     }
     
@@ -298,27 +320,28 @@ WindowControl.prototype.checkConditions = function() {
         return;
     }
     
-    _.each(self.modes,function(type) {
+    _.each(['winter','summer'],function(type) {
         if (self.config[type+'Active']
             && self[type+'Device'].get('metrics:level') === 'on') {
             self.log('Evaluating '+type+' window positions');
-            self[type+'Process']();
+            var uctype = type.charAt(0).toUpperCase() + type.slice(1);
+            self['process'+uctype]();
         }
     });
 };
 
-WindowControl.prototype.winterProcess = function() {
+WindowControl.prototype.processWinter = function() {
     var self = this;
     
     self.log('Process winter rules');
-    var temperatureOutsideDevice    = self.getDevice(self.config.temperatureOutsideSensorDevice);
+    var temperatureOutsideDevice    = self.getDeviceById(self.config.temperatureOutsideSensorDevice);
     var temperatureOutside          = temperatureOutsideDevice.get('metrics:value');
     var now                         = Math.floor(new Date().getTime() / 1000);
     var limit                       = now - self.config.winterRules.maxOpenTime * 60;
     var targetPos                   = 100; // TODO sane targetPos
     
     _.each(self.config.zones,function(zone,index) {
-        var temperatureInsideDevice = self.getDevice(zone.temperatureSensor);
+        var temperatureInsideDevice = self.getDeviceById(zone.temperatureSensor);
         var temperatureInside = temperatureInsideDevice.get('metrics:value');
         var zoneStatus = self.winterDevice.get('metrics:zone'+index) || false;
         
@@ -363,16 +386,34 @@ WindowControl.prototype.winterProcess = function() {
     });
 };
 
-WindowControl.prototype.summerProcess = function() {
+WindowControl.prototype.processSummer = function() {
     var self = this;
     
     // TODO
 };
 
-WindowControl.prototype.ventilateProcess = function() {
+WindowControl.prototype.processVentilate = function() {
     var self = this;
     
-    // TODO
+    // Check virtual device
+    if (self.ventilationDevice.get('metrics:level') !== 'on') {
+        self.log('Ventilation is disabled');
+        return;
+    }
+    
+    var temperatureOutsideDevice    = self.getDeviceById(self.config.temperatureOutsideSensorDevice);
+    var temperatureOutside          = temperatureOutsideDevice.get('metrics:value');
+    var matchTime                   = false;
+    
+    // Check wind, rain & temperature
+    if (self.checkRain() || self.checkWind() || temperatureOutside < self.config.ventilationRules.minTemperatureOutside) {
+        self.log('Ignoring ventilation due to wind/rain/low temperature');
+        return;
+    }
+    
+    _.each(self.config.zones,function(zone,index) {
+        self.ventilateZone(zone);
+    });
 };
    
    
@@ -380,7 +421,7 @@ WindowControl.prototype.ventilateProcess = function() {
 
     
     // Get desired temperature
-    var thermostatLevel = self.getDevice('thermostat');
+    var thermostatLevel = self.getDeviceById('thermostat');
     if (typeof(thermostatLevel) === 'undefined') {
         self.error('Cannot find thermostat device');
         return;
@@ -564,7 +605,7 @@ WindowControl.prototype.ventilateProcess = function() {
 
      */
 
-WindowControl.prototype.getDevice = function(deviceId) {
+WindowControl.prototype.getDeviceById = function(deviceId) {
     var self = this;
     
     if (typeof(deviceId) === 'undefined') {
@@ -599,21 +640,30 @@ WindowControl.prototype.commandModeDevice = function(type,command,args) {
 
 };
 
-WindowControl.prototype.commandVentilateZone = function(zone,args) {
+WindowControl.prototype.ventilateZone = function(zone,args) {
     var self            = this;
     args                = args || {};
     var forceVentilate  = args.force || false;
     var duration        = args.duration;
     var last            = args.last || 60;
     
+    /*
     // Check wind & rain
     if (self.checkRain() || self.checkWind()) {
         self.log('Ignoring ventilation due to wind/rain');
         return;
     }
+    */
     
     if (typeof(duration) === 'undefined') {
-        // TODO calulate duration
+        var temperature = self.getDeviceById([
+           ['metrics:probeTitle','=','WeatherUndergoundCurrent'],
+           ['location','=',self.room.outside]
+           
+        ]);
+       
+        duration = Math.min(Math.max(temperature / 2) + 4,15);
+        duration = duration * 60;
     }
     
     self.processDeviceList(self.config.zones[zone].windowSensors,function(deviceObject) {
@@ -631,7 +681,7 @@ WindowControl.prototype.commandVentilateZone = function(zone,args) {
     
     // TODO
 };
-
+/*
 WindowControl.prototype.moveDevices = function(devices,position) {
     var self = this;
     

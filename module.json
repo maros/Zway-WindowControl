@@ -6,7 +6,8 @@
         "title":"__m_title__"
     },
     "dependencies":[
-        "BaseModule"
+        "BaseModule",
+        "Cron"
     ],
     "homepage":"http://k-1.com",
     "icon":"icon_on.png",
