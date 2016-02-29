@@ -27,7 +27,6 @@ function WindowControl (id, controller) {
     this.rainCallback               = undefined;
     this.interval                   = undefined;
     this.cronName                   = undefined;
-
 }
 
 inherits(WindowControl, BaseModule);
@@ -97,10 +96,10 @@ WindowControl.prototype.init = function (config) {
         self.controller.on(self.cronName,_.bind(self.ventilateProcess,self));
         
         _.each(self.config.ventilationRules.time,function(time) {
-            var time = self.parseTime(time);
+            var parsedTime = self.parseTime(time);
             self.controller.emit("cron.addTask",self.cronName, {
-                minute:     time.getMinutes(),
-                hour:       time.getHours(),
+                minute:     parsedTime.getMinutes(),
+                hour:       parsedTime.getHours(),
                 weekDay:    null,
                 day:        null,
                 month:      null,
@@ -125,7 +124,14 @@ WindowControl.prototype.init = function (config) {
                     },
                     handler: function(command, args) {
                         if (command === 'on') {
-                            self.commandVentilateZone(index,args);
+                            args = args || {};
+                            if (typeof(args.force) === 'undefined') {
+                                args.force = true;
+                            }
+                            if (typeof(args.last) === 'undefined') {
+                                args.last = 0;
+                            }
+                            self.processVentilateZone(index,args);
                         }
                     },
                     moduleId: self.id
@@ -187,7 +193,6 @@ WindowControl.prototype.stop = function () {
     self.controller.off('security.smoke.alarm',self.alarmCallback);
     self.controller.off('security.smoke.cancel',self.alarmCallback);
     self.controller.off('security.smoke.stop',self.alarmCallback);
-    self.controller.off(self.cronName,self.ventilateCallback);
     
     // Unbind rain callbacks
     self.controller.off('rain.start',self.rainCallback);
@@ -198,6 +203,7 @@ WindowControl.prototype.stop = function () {
     
     // Remove cron
     self.controller.emit("cron.removeTask", self.cronName);
+    self.controller.off(self.cronName,self.ventilateCallback);
     
     self.alarmCallback      = undefined;
     self.rainCallback       = undefined;
@@ -216,6 +222,8 @@ WindowControl.prototype.initCallback = function() {
     });
     self.windowDevices = _.uniq(_.flatten(devices));
     
+    self.checkOffTime(self.windowDevices);
+    
     // Get thermostat device
     if (self.config.summerActive
         && typeof(self.config.summerRules.thermostatDevice) !== 'undefined') {
@@ -230,7 +238,6 @@ WindowControl.prototype.initCallback = function() {
         }
     }
 };
-
 
 // ----------------------------------------------------------------------------
 // --- Module methods
@@ -264,8 +271,6 @@ WindowControl.prototype.processAlarm = function(event) {
 
 WindowControl.prototype.processRain = function(event) {
     var self = this;
-    // TODO
-    console.logJS(event);
     
     self.log('Detected rain. Closing all windows');
     self.moveDevices(self.allDevices,255);
@@ -306,6 +311,8 @@ WindowControl.prototype.checkWind = function () {
 WindowControl.prototype.checkConditions = function() {
     var self = this;
     
+    self.checkOffTime(self.windowDevices);
+    
     // Check rain
     if (self.checkRain()) {
         self.log('Closing all windows due to rain');
@@ -330,10 +337,28 @@ WindowControl.prototype.checkConditions = function() {
     });
 };
 
+WindowControl.prototype.checkOffTime = function(devices) {
+    var self = this;
+    var now  = Math.floor(new Date().getTime() / 1000);
+
+    _.each(function(devices),function(deviceObject) {
+        var offTime = deviceObject.get('metrics:offTime');
+        if (typeof(offTime) === 'number' 
+            && offTime < now) {
+            self.log('Close window after off time '+deviceObject.id);
+            deviceObject.performCommand('off');
+            deviceObject.set('metrics:auto',false);
+            deviceObject.set('metrics:windowMode','none');
+            deviceObject.set('metrics:offTime',null);
+        }
+    });
+};
+
 WindowControl.prototype.processWinter = function() {
     var self = this;
     
     self.log('Process winter rules');
+    
     var temperatureOutsideDevice    = self.getDeviceById(self.config.temperatureOutsideSensorDevice);
     var temperatureOutside          = temperatureOutsideDevice.get('metrics:value');
     var now                         = Math.floor(new Date().getTime() / 1000);
@@ -403,7 +428,6 @@ WindowControl.prototype.processVentilate = function() {
     
     var temperatureOutsideDevice    = self.getDeviceById(self.config.temperatureOutsideSensorDevice);
     var temperatureOutside          = temperatureOutsideDevice.get('metrics:value');
-    var matchTime                   = false;
     
     // Check wind, rain & temperature
     if (self.checkRain() || self.checkWind() || temperatureOutside < self.config.ventilationRules.minTemperatureOutside) {
@@ -411,12 +435,14 @@ WindowControl.prototype.processVentilate = function() {
         return;
     }
     
-    _.each(self.config.zones,function(zone,index) {
-        self.ventilateZone(zone);
+    // Ventilate zones
+    _.each(self.config.zones,function(zoneConfig,zoneIndex) {
+        self.processVentilateZone(zoneIndex);
     });
 };
-   
-   
+
+
+
 /*
 
     
@@ -605,20 +631,6 @@ WindowControl.prototype.processVentilate = function() {
 
      */
 
-WindowControl.prototype.getDeviceById = function(deviceId) {
-    var self = this;
-    
-    if (typeof(deviceId) === 'undefined') {
-        return;
-    }
-    var deviceObject = self.controller.devices.get(deviceId);
-    if (deviceObject === null) {
-        self.error('Could not find '+deviceId+' device');
-        return;
-    }
-    return deviceObject;
-};
-
 WindowControl.prototype.commandModeDevice = function(type,command,args) {
     var self = this;
     
@@ -640,48 +652,123 @@ WindowControl.prototype.commandModeDevice = function(type,command,args) {
 
 };
 
-WindowControl.prototype.ventilateZone = function(zone,args) {
-    var self            = this;
-    args                = args || {};
-    var forceVentilate  = args.force || false;
-    var duration        = args.duration;
-    var last            = args.last || 60;
+WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
+    var self                = this;
+    args                    = args || {};
+    var forceVentilate      = args.force || false;
+    var duration            = args.duration;
+    var lastVentilationDiff = args.last || self.config.ventilationRules.interval;
+    lastVentilationDiff     = last * 60;
+    var windowPosition      = args.position || self.config.ventilationRules.windowPosition || 50;
+    var now                 = Math.floor(new Date().getTime() / 1000);
     
-    /*
     // Check wind & rain
     if (self.checkRain() || self.checkWind()) {
         self.log('Ignoring ventilation due to wind/rain');
         return;
     }
-    */
     
+    // Calc duration
     if (typeof(duration) === 'undefined') {
-        var temperature = self.getDeviceById([
-           ['metrics:probeTitle','=','WeatherUndergoundCurrent'],
-           ['location','=',self.room.outside]
-           
-        ]);
-       
-        duration = Math.min(Math.max(temperature / 2) + 4,15);
-        duration = duration * 60;
+        var temperatureOutsideDevice    = self.getDeviceById(self.config.temperatureOutsideSensorDevice);
+        var temperatureOutside          = temperatureOutsideDevice.get('metrics:value');
+        var temperatureInsideDevice     = self.getDeviceById(self.config.zones[zoneIndex].temperatureSensor);
+        var temperatureInside           = temperatureOutsideDevice.get('metrics:value');
+        var temperatureMin              = self.config.ventilationRules.minTemperatureOutside;
+        var duration                    = self.config.ventilationRules.maxTime - self.config.ventilationRules.minTime;
+        
+        if (temperatureOutside < temperatureMin) {
+            duration = 0;
+            if (! forceVentilate) {
+                return;
+            }
+        } else {
+            var diff = Math.min((temperatureOutside - temperatureMin)/(temperatureInside - temperatureOutside),1);
+            duration = duration * diff;
+        }
+        
+        duration = self.config.ventilationRules.minTime + duration;
+    }
+    var offTime = now + (duration * 60);
+    
+    if (forceVentilate === false) {
+        var ventilating;
+        var lastVentilation = [];
+        
+        // Get all window sensors
+        self.processDeviceList(self.config.zones[zone].windowSensors,function(deviceObject) {
+            if (deviceObject.get('metrics:level') === 'on') {
+                self.log('Zone '+zoneIndex+' already ventilated - sensor. Skipping');
+                ventilating = true;
+            } else {
+                lastVentilation.push(deviceObject.get('metrics:modificationTime'));
+            }
+        });
+        
+        if (ventilating) return;
+        
+        // Get all window sensors
+        self.processDeviceList(self.config.zones[zone].windowDevices,function(deviceObject) {
+            if (deviceObject.get('metrics:level') > 0) {
+                self.log('Zone '+zoneIndex+' already ventilated - window. Skipping');
+                ventilating = true;
+            } else {
+                lastVentilation.push(deviceObject.get('metrics:modificationTime'));
+            }
+        });
+        
+        if (ventilating) return;
+        
+        lastVentilation.sort(function(a,b) { return b-a; });
+        var lastMinutes = parseInt(((new Date()).getTime() / 1000 - lastVentilation[0]) / 60,10);
+        
+        if (lastMinutes < lastVentilationDiff) {
+            self.log("Last ventilation "+lastMinutes+" minutes ago. Skipping");
+            return;
+        }
     }
     
-    self.processDeviceList(self.config.zones[zone].windowSensors,function(deviceObject) {
-        // TODO Get window status
-    });
+    self.log('Ventilate zone '+zoneIndex);
     
     self.processDeviceList(self.config.zones[zone].windowDevices,function(deviceObject) {
         var deviceAuto  = deviceObject.get('metrics:auto') || false;
         var deviceLevel = deviceObject.get('metrics:level') || 0;
         var deviceMode  = deviceObject.get('metrics:windowMode') || 'none';
-        var lastChange  = deviceObject.get('metrics:modificationTime') || now;
         
-        // TODO
+        if (deviceMode !== 'none' || deviceAuto === true) {
+            self.log('Skipping window '+deviceObject.id);
+            return;
+        }
+        
+        deviceObject.performCommand('exact',{ 'level': windowPosition });
+        deviceObject.set('metrics:auto',true);
+        deviceObject.set('metrics:windowMode','ventilate');
+        deviceObject.set('metrics:offTime',offTime);
+        
+        setTimeout(function() {
+            self.log('Stop ventilate window '+deviceObject.id);
+            deviceObject.performCommand('off');
+            deviceObject.set('metrics:auto',false);
+            deviceObject.set('metrics:windowMode','none');
+            deviceObject.set('metrics:offTime',null);
+        },(duration * 60 * 1000));
     });
-    
-    // TODO
 };
-/*
+
+WindowControl.prototype.getDeviceById = function(deviceId) {
+    var self = this;
+    
+    if (typeof(deviceId) === 'undefined') {
+        return;
+    }
+    var deviceObject = self.controller.devices.get(deviceId);
+    if (deviceObject === null) {
+        self.error('Could not find '+deviceId+' device');
+        return;
+    }
+    return deviceObject;
+};
+
 WindowControl.prototype.moveDevices = function(devices,position) {
     var self = this;
     

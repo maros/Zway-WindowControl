@@ -83,6 +83,10 @@
                 "label": "__winter_rules_label__",
                 "helper": "__winter_rules_helper__",
                 "fields" : {
+                    "maxOpenTime": {
+                        "label": "__max_open_time_label__",
+                        "helper": "__max_open_time_helper__"
+                    }
                 }
             },
             "winterActive" : {
