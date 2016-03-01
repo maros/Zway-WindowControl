@@ -273,7 +273,7 @@ WindowControl.prototype.processRain = function(event) {
     var self = this;
     
     self.log('Detected rain. Closing all windows');
-    self.moveDevices(self.allDevices,255);
+    self.moveDevices(self.allDevices,0);
 };
 
 WindowControl.prototype.checkRain = function () {
@@ -316,14 +316,14 @@ WindowControl.prototype.checkConditions = function() {
     // Check rain
     if (self.checkRain()) {
         self.log('Closing all windows due to rain');
-        self.moveDevices(self.allDevices,255);
+        self.moveDevices(self.allDevices,0);
         return;
     }
     
     // Check rain
     if (self.checkWind()) {
         self.log('Closing all windows due to wind');
-        self.moveDevices(self.allDevices,255);
+        self.moveDevices(self.allDevices,0);
         return;
     }
     
@@ -346,10 +346,7 @@ WindowControl.prototype.checkOffTime = function(devices) {
         if (typeof(offTime) === 'number' 
             && offTime < now) {
             self.log('Close window after off time '+deviceObject.id);
-            deviceObject.performCommand('off');
-            deviceObject.set('metrics:auto',false);
-            deviceObject.set('metrics:windowMode','none');
-            deviceObject.set('metrics:offTime',null);
+            sekf.moveDevices(deviceObject,0);
         }
     });
 };
@@ -631,27 +628,6 @@ WindowControl.prototype.processVentilate = function() {
 
      */
 
-WindowControl.prototype.commandModeDevice = function(type,command,args) {
-    var self = this;
-    
-    var device = self[type+'Device'];
-    if (command !== 'on' && command !== 'off')
-        return;
-    
-    // Turn off other device
-    if (command === 'on') {
-        if (type === 'winter' && self.config.summerActive) {
-            self.summerDevice.performCommand('off');
-        } else if (type === 'summer' && self.config.winterActive) {
-            self.summerDevice.performCommand('off');
-        }
-    }
-    
-    device.set('metrics:level',command);
-    device.set("metrics:icon", "/ZAutomation/api/v1/load/modulemedia/WindowControl/icon_"+type+"_"+command+".png");
-
-};
-
 WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
     var self                = this;
     args                    = args || {};
@@ -740,19 +716,35 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
             return;
         }
         
-        deviceObject.performCommand('exact',{ 'level': windowPosition });
-        deviceObject.set('metrics:auto',true);
-        deviceObject.set('metrics:windowMode','ventilate');
-        deviceObject.set('metrics:offTime',offTime);
+        self.moveDevices(deviceObject,windowPosition,'ventilate',offTime);
         
         setTimeout(function() {
             self.log('Stop ventilate window '+deviceObject.id);
-            deviceObject.performCommand('off');
-            deviceObject.set('metrics:auto',false);
-            deviceObject.set('metrics:windowMode','none');
-            deviceObject.set('metrics:offTime',null);
+            self.moveDevices(deviceObject,0);
         },(duration * 60 * 1000));
     });
+    
+};
+
+WindowControl.prototype.commandModeDevice = function(type,command,args) {
+    var self = this;
+    
+    var device = self[type+'Device'];
+    if (command !== 'on' && command !== 'off')
+        return;
+    
+    // Turn off other device
+    if (command === 'on') {
+        if (type === 'winter' && self.config.summerActive) {
+            self.summerDevice.performCommand('off');
+        } else if (type === 'summer' && self.config.winterActive) {
+            self.summerDevice.performCommand('off');
+        }
+    }
+    
+    device.set('metrics:level',command);
+    device.set("metrics:icon", "/ZAutomation/api/v1/load/modulemedia/WindowControl/icon_"+type+"_"+command+".png");
+
 };
 
 WindowControl.prototype.getDeviceById = function(deviceId) {
@@ -769,29 +761,33 @@ WindowControl.prototype.getDeviceById = function(deviceId) {
     return deviceObject;
 };
 
-WindowControl.prototype.moveDevices = function(devices,position) {
+WindowControl.prototype.moveDevices = function(devices,position,windowMode,offTime) {
     var self = this;
     
-    _.each(devices,function(deviceId) {
-        var deviceObject = self.controller.devices.get(deviceId);
-        if (deviceObject === null) {
-            self.error('Could not find window device '+deviceId);
-            return;
-        }
-        var deviceAuto = deviceObject.get('metrics:auto');
-        if ((position < 255 && deviceAuto === false) || (position === 255 && deviceAuto === true)) {
-            return;
-        }
+    self.processDeviceList(devices,function(deviceObject){
+        var deviceAuto = deviceObject.get('metrics:auto') || false;
+        //if ((position < 255 && deviceAuto === false) || (position === 255 && deviceAuto === true)) {
+        //    return;
+        //}
         self.error('Auto move window '+deviceId+' to '+position);
-        if (position < 255) {
-            deviceObject.set('metrics:auto',true);
-            deviceObject.performCommand('on');
-        } else if (position >= 255) {
+        if (position === 0) {
             deviceObject.set('metrics:auto',false);
+            deviceObject.set('metrics:offTime',null);
             deviceObject.performCommand('off');
         } else {
+            if (position >= 99) {
+                deviceObject.performCommand('on');
+                if (typeof(mode))
+            } else {
+                deviceObject.performCommand('exact',{ level: position });
+            }
             deviceObject.set('metrics:auto',true);
-            deviceObject.performCommand('exact',{ level: position });
+            if (typeof(windowMode) !== 'undefined') {
+                deviceObject.set('metrics:windowMode',windowMode);
+            }
+            if (typeof(offTime) !== 'undefined') {
+                deviceObject.set('metrics:offTime',offTime);
+            }
         }
     });
 };
