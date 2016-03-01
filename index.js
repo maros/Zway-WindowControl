@@ -227,12 +227,12 @@ WindowControl.prototype.initCallback = function() {
     // Get thermostat device
     if (self.config.summerActive
         && typeof(self.config.summerRules.thermostatDevice) !== 'undefined') {
-        self.thermostatDevice = self.getDeviceById(self.config.summerRules.thermostatDevice);
+        self.thermostatDevice = self.getDevice(self.config.summerRules.thermostatDevice);
     }
     
     // Get rain sensor
     if (typeof(self.config.rainSensor) !== 'undefined') {
-        self.rainSensorDevice = self.getDeviceById(self.config.rainSensorDevice);
+        self.rainSensorDevice = self.getDevice(self.config.rainSensorDevice);
         if (typeof(self.rainSensorDevice) !== 'undefined') {
             self.rainSensorDevice.on('change:metrics:level',self.rainCallback);
         }
@@ -294,15 +294,11 @@ WindowControl.prototype.checkWind = function () {
     var self = this;
     
     // Check rain
-    var windDevice = self.getDeviceById(self.config.windSensorDevice);
-    if (typeof(windDevice) !== 'undefined') {
-        var windMax     = self.config.maxWind;
-        var windLevel   = windDevice.get('metrics:level');
-        // Check wind level
-        if (typeof(windLevel) !== 'undefined'
-            && windMax > windLevel) {
-            return true;
-        }
+    var windLevel   = self.getDeviceValue(self.config.windSensorDevice);
+    var windMax     = self.config.maxWind;
+    if (typeof(windLevel) !== 'undefined'
+        && windMax > windLyevel) {
+        return true;
     }
     
     return false;
@@ -341,7 +337,7 @@ WindowControl.prototype.checkOffTime = function(devices) {
     var self = this;
     var now  = Math.floor(new Date().getTime() / 1000);
 
-    _.each(function(devices),function(deviceObject) {
+    _.each(devices,function(deviceObject) {
         var offTime = deviceObject.get('metrics:offTime');
         if (typeof(offTime) === 'number' 
             && offTime < now) {
@@ -356,15 +352,13 @@ WindowControl.prototype.processWinter = function() {
     
     self.log('Process winter rules');
     
-    var temperatureOutsideDevice    = self.getDeviceById(self.config.temperatureOutsideSensorDevice);
-    var temperatureOutside          = temperatureOutsideDevice.get('metrics:value');
-    var now                         = Math.floor(new Date().getTime() / 1000);
-    var limit                       = now - self.config.winterRules.maxOpenTime * 60;
-    var targetPos                   = 100; // TODO sane targetPos
+    var temperatureOutside  = self.getDeviceValue(self.config.temperatureOutsideSensorDevice);
+    var now                 = Math.floor(new Date().getTime() / 1000);
+    var limit               = now - self.config.winterRules.maxOpenTime * 60;
+    var targetPos           = 100; // TODO sane targetPos
     
     _.each(self.config.zones,function(zone,index) {
-        var temperatureInsideDevice = self.getDeviceById(zone.temperatureSensor);
-        var temperatureInside = temperatureInsideDevice.get('metrics:value');
+        var temperatureInside = self.getTemperatureZone(zone);
         var zoneStatus = self.winterDevice.get('metrics:zone'+index) || false;
         
         _.each(zone.windowDevices,function(deviceId) {
@@ -378,7 +372,6 @@ WindowControl.prototype.processWinter = function() {
             var deviceMode  = deviceObject.get('metrics:windowMode') || 'none';
             var lastChange  = deviceObject.get('metrics:modificationTime') || now;
             
-            // TODO sanity check
             if (temperatureOutside > (temperatureInside + 0.2)
                 && deviceMode === 'none') {
                 action = 'open';
@@ -411,7 +404,190 @@ WindowControl.prototype.processWinter = function() {
 WindowControl.prototype.processSummer = function() {
     var self = this;
     
-    // TODO
+    var thermostatSetpoint = self.thermostatDevice.get('metrics:value');
+
+    /*
+
+        
+        // Get desired temperature
+        
+        // Set window position to 100%
+        var position    = 100;
+        
+        // Get window position based on POP
+        if (typeof(self.currentDevice) !== 'undefined') {
+            var pop         = self.currentDevice.get('metrics:pop');
+            var condition   = self.currentDevice.get('metrics:condition');
+            if (pop > 50
+                && condition !== 'clear'
+                && condition !== 'mostlysunny') {
+                position = position - pop + 30;
+            }
+        }
+        
+        // Get window position based on wind
+        if (windLevel >= (windMax / 2)) {
+            var windSteps       = (windMax / 2);
+            var maxPosition     = (windLevel-windSteps) / windSteps * 100;
+            maxPosition         = Math.max(25,maxPosition);
+            position            = Math.min(position,maxPosition);
+        }
+        
+        
+        // Winter mode
+        // Summer mode
+        
+        
+            -- Temp calulations for summer
+            local mode = "default"
+            if data.season == "summer" then
+                if weather_status.low < (WINDOWS.MIN_TEMPERATURE_OUTSIDE - 4) then
+                    mode = "low"
+                    temperature_open = data.setpoint + 1.25
+                    temperature_close = data.setpoint + 0.25
+                    -- TODO different values for end of summer?
+                elseif weather_status.high > (data.setpoint + 3)
+                    and weather_status.low > (data.setpoint - 8) then
+                    mode = "high"
+                    local temperature_delta     = weather_status.high - data.setpoint
+                    temperature_close           = temperature_close - (temperature_delta/3)
+                    temperature_open            = temperature_open - (temperature_delta/3)
+                    temperature_close           = math.max(temperature_close,TEMPERATURE.DEFAULT+1.5)
+                    temperature_open            = math.max(temperature_open,TEMPERATURE.DEFAULT+2.5)
+                end
+            end
+            
+            local temperature_diff = 0
+            local min_temperature = WINDOWS.MIN_TEMPERATURE_OUTSIDE
+            
+            -- Evening mode
+            if datetable.hour >= 19 then
+                temperature_diff = 1
+            -- Night mode during warm days
+            elseif mode == "high" and datetable.hour <= 6 then
+                min_temperature = min_temperature - 1
+                temperature_diff = 1
+                temperature_open = temperature_open - 0.5
+                temperature_close = temperature_close - 0.5
+            -- Strong sun mode
+            elseif weather_status.uv >= 5
+                or weather_status.solar > 600 then
+                temperature_diff = -1
+            end
+            
+            -- Home and cool
+            if data.statuskey == 'HOME'
+                and weather_status.temperature < data.setpoint then
+                min_temperature = min_temperature + 1
+                temperature_diff = temperature_diff - 1
+            -- Away and hot
+            elseif data.statuskey == 'AWAY'
+                and mode == "high" then
+                temperature_open = temperature_open - 0.5
+                temperature_close = temperature_close - 0.5
+                temperature_diff = temperature_diff + 0.5
+            -- Home and heatwave
+            elseif data.statuskey == 'HOME'
+                and mode == "high"
+                and weather_status.high > (TEMPERATURE.MAX + 6) then
+                min_temperature = min_temperature - 1
+                temperature_diff = temperature_diff + 0.5
+            end
+            
+            -- Mode
+            if mode == "high" then
+                min_temperature = min_temperature - 1
+                temperature_diff = temperature_diff + 0.5
+                luup.log('[MyHome] High temperature windows mode (Open>='..temperature_open..', Close<'..temperature_close..')')
+            elseif mode == "low" then
+                luup.log('[MyHome] Low temperature windows mode (Open>='..temperature_open..', Close<'..temperature_close..')')
+            else
+                luup.log('[MyHome] Default windows mode (Open>='..temperature_open..', Close<'..temperature_close..')')
+            end
+            
+            -- Get rooms
+            local rooms_set = {}
+            for index,device_id in pairs(devices_search({ ["class"] = "Window" })) do
+                local room_num = tonumber(device_attr(device_id,"room_num"))
+                rooms_set[room_num] = true
+            end
+            
+            -- Loop rooms
+            for room_num,_ in pairs(rooms_set) do
+                local room_name = luup.rooms[room_num]
+                local temperature_inside = temperature_room(room_num)
+                local room_action = "keep"
+                local room_position = position
+                luup.log('[MyHome] Processing windows in room ' .. room_name)
+                
+                -- Winter mode 
+                if data.season == "winter"
+                    or datetable.month >= 10 
+                    or datetable.month <= 3 then
+                    -- Outside warmer than inside
+                    if temperature_inside < weather_status.temperature then
+                        room_position = math.min(room_position,50)
+                        luup.log("[MyHome] Opening all windows in "..room_name.." to "..open_position.."% (Winter mode; inside temperature "..weather_status.inside.." lower than outside temperature "..weather_status.temperature..")")
+                        room_action = "open"
+                    -- Inside warmer than outside (1 degree diff)
+                    elseif temperature_inside >= (weather_status.temperature + 1) then
+                        luup.log("[MyHome] Closing all windows in "..room_name.." (Winter mode; Outside temperature low)")
+                        room_action = "close"
+                    end
+                -- Summer mode 
+                else
+                    -- Corridor
+                    if weather_status.temperature < data.setpoint
+                        and weather_status.low < TEMPERATURE.NIGHT
+                        and temperature_inside < (data.setpoint + 3) then
+                        local corridor = (weather_status.temperature - min_temperature) / (data.setpoint - min_temperature + 1) * 100
+                        if corridor > 60 then
+                            corridor = corridor - 10
+                        end
+                        room_position = math.min(room_position,corridor)
+                        if position > room_position then
+                            luup.log("[MyHome] Corridor reduced to "..room_position.."% from "..position.."%")
+                        end
+                    end
+                    
+                    luup.log("[MyHome] Inside="..temperature_inside..", Outside="..weather_status.temperature..", Position="..room_position..", Diff="..temperature_diff..", Min="..min_temperature);
+                    
+                    -- Handle zero or negative position
+                    if room_position <= 0 then
+                        room_position = 0
+                        luup.log("[MyHome] Closing all windows in "..room_name.." (temperature corridor + pop "..weather_status.pop..")")
+                        room_action = "close"
+                    -- Warmer inside -> open
+                    elseif temperature_inside >= temperature_open
+                        and (temperature_inside + temperature_diff - 0.5) >= weather_status.temperature then
+                        luup.log("[MyHome] Opening all windows in "..room_name.." to "..room_position.."% (inside temperature "..temperature_inside.." above outside temperature "..weather_status.temperature..")")
+                        room_action = "open"
+                    -- Cool inside -> close
+                    elseif temperature_inside <= temperature_close then
+                        luup.log("[MyHome] Closing all windows in "..room_name.." (inside temperature "..temperature_inside.." below "..temperature_close..")")
+                        room_action = "close"
+                    -- Warmer outside -> close
+                    elseif (temperature_inside + temperature_diff + 0.5) <= weather_status.temperature then
+                        luup.log("[MyHome] Closing all windows in "..room_name.." (inside temperature "..temperature_inside.."+0.5 below outside temperature "..weather_status.temperature..")")
+                        room_action = "close"
+                    end
+                end
+                
+                if room_action == "keep" then
+                    luup.log("[MyHome] Not changing window status")
+                end
+                
+                if room_position > 0 and room_position < 20 then
+                    room_position = 20
+                end
+                
+                -- TODO enable actions
+                for index,device_id in pairs(devices_search({ ["class"] = "Window", ["room_num"] = room_num })) do
+                    device_auto_move(device_id,room_action,room_position)
+                end
+            end
+
+         */
 };
 
 WindowControl.prototype.processVentilate = function() {
@@ -423,8 +599,7 @@ WindowControl.prototype.processVentilate = function() {
         return;
     }
     
-    var temperatureOutsideDevice    = self.getDeviceById(self.config.temperatureOutsideSensorDevice);
-    var temperatureOutside          = temperatureOutsideDevice.get('metrics:value');
+    var temperatureOutside = self.getDeviceValue(self.config.temperatureOutsideSensorDevice);
     
     // Check wind, rain & temperature
     if (self.checkRain() || self.checkWind() || temperatureOutside < self.config.ventilationRules.minTemperatureOutside) {
@@ -440,193 +615,6 @@ WindowControl.prototype.processVentilate = function() {
 
 
 
-/*
-
-    
-    // Get desired temperature
-    var thermostatLevel = self.getDeviceById('thermostat');
-    if (typeof(thermostatLevel) === 'undefined') {
-        self.error('Cannot find thermostat device');
-        return;
-    }
-    
-    // Set window position to 100%
-    var position    = 100;
-    
-    // Get window position based on POP
-    if (typeof(self.currentDevice) !== 'undefined') {
-        var pop         = self.currentDevice.get('metrics:pop');
-        var condition   = self.currentDevice.get('metrics:condition');
-        if (pop > 50
-            && condition !== 'clear'
-            && condition !== 'mostlysunny') {
-            position = position - pop + 30;
-        }
-    }
-    
-    // Get window position based on wind
-    if (windLevel >= (windMax / 2)) {
-        var windSteps       = (windMax / 2);
-        var maxPosition     = (windLevel-windSteps) / windSteps * 100;
-        maxPosition         = Math.max(25,maxPosition);
-        position            = Math.min(position,maxPosition);
-    }
-    
-    
-    // Winter mode
-    // Summer mode
-    
-    
-        -- Temp calulations for summer
-        local mode = "default"
-        if data.season == "summer" then
-            if weather_status.low < (WINDOWS.MIN_TEMPERATURE_OUTSIDE - 4) then
-                mode = "low"
-                temperature_open = data.setpoint + 1.25
-                temperature_close = data.setpoint + 0.25
-                -- TODO different values for end of summer?
-            elseif weather_status.high > (data.setpoint + 3)
-                and weather_status.low > (data.setpoint - 8) then
-                mode = "high"
-                local temperature_delta     = weather_status.high - data.setpoint
-                temperature_close           = temperature_close - (temperature_delta/3)
-                temperature_open            = temperature_open - (temperature_delta/3)
-                temperature_close           = math.max(temperature_close,TEMPERATURE.DEFAULT+1.5)
-                temperature_open            = math.max(temperature_open,TEMPERATURE.DEFAULT+2.5)
-            end
-        end
-        
-        local temperature_diff = 0
-        local min_temperature = WINDOWS.MIN_TEMPERATURE_OUTSIDE
-        
-        -- Evening mode
-        if datetable.hour >= 19 then
-            temperature_diff = 1
-        -- Night mode during warm days
-        elseif mode == "high" and datetable.hour <= 6 then
-            min_temperature = min_temperature - 1
-            temperature_diff = 1
-            temperature_open = temperature_open - 0.5
-            temperature_close = temperature_close - 0.5
-        -- Strong sun mode
-        elseif weather_status.uv >= 5
-            or weather_status.solar > 600 then
-            temperature_diff = -1
-        end
-        
-        -- Home and cool
-        if data.statuskey == 'HOME'
-            and weather_status.temperature < data.setpoint then
-            min_temperature = min_temperature + 1
-            temperature_diff = temperature_diff - 1
-        -- Away and hot
-        elseif data.statuskey == 'AWAY'
-            and mode == "high" then
-            temperature_open = temperature_open - 0.5
-            temperature_close = temperature_close - 0.5
-            temperature_diff = temperature_diff + 0.5
-        -- Home and heatwave
-        elseif data.statuskey == 'HOME'
-            and mode == "high"
-            and weather_status.high > (TEMPERATURE.MAX + 6) then
-            min_temperature = min_temperature - 1
-            temperature_diff = temperature_diff + 0.5
-        end
-        
-        -- Mode
-        if mode == "high" then
-            min_temperature = min_temperature - 1
-            temperature_diff = temperature_diff + 0.5
-            luup.log('[MyHome] High temperature windows mode (Open>='..temperature_open..', Close<'..temperature_close..')')
-        elseif mode == "low" then
-            luup.log('[MyHome] Low temperature windows mode (Open>='..temperature_open..', Close<'..temperature_close..')')
-        else
-            luup.log('[MyHome] Default windows mode (Open>='..temperature_open..', Close<'..temperature_close..')')
-        end
-        
-        -- Get rooms
-        local rooms_set = {}
-        for index,device_id in pairs(devices_search({ ["class"] = "Window" })) do
-            local room_num = tonumber(device_attr(device_id,"room_num"))
-            rooms_set[room_num] = true
-        end
-        
-        -- Loop rooms
-        for room_num,_ in pairs(rooms_set) do
-            local room_name = luup.rooms[room_num]
-            local temperature_inside = temperature_room(room_num)
-            local room_action = "keep"
-            local room_position = position
-            luup.log('[MyHome] Processing windows in room ' .. room_name)
-            
-            -- Winter mode 
-            if data.season == "winter"
-                or datetable.month >= 10 
-                or datetable.month <= 3 then
-                -- Outside warmer than inside
-                if temperature_inside < weather_status.temperature then
-                    room_position = math.min(room_position,50)
-                    luup.log("[MyHome] Opening all windows in "..room_name.." to "..open_position.."% (Winter mode; inside temperature "..weather_status.inside.." lower than outside temperature "..weather_status.temperature..")")
-                    room_action = "open"
-                -- Inside warmer than outside (1 degree diff)
-                elseif temperature_inside >= (weather_status.temperature + 1) then
-                    luup.log("[MyHome] Closing all windows in "..room_name.." (Winter mode; Outside temperature low)")
-                    room_action = "close"
-                end
-            -- Summer mode 
-            else
-                -- Corridor
-                if weather_status.temperature < data.setpoint
-                    and weather_status.low < TEMPERATURE.NIGHT
-                    and temperature_inside < (data.setpoint + 3) then
-                    local corridor = (weather_status.temperature - min_temperature) / (data.setpoint - min_temperature + 1) * 100
-                    if corridor > 60 then
-                        corridor = corridor - 10
-                    end
-                    room_position = math.min(room_position,corridor)
-                    if position > room_position then
-                        luup.log("[MyHome] Corridor reduced to "..room_position.."% from "..position.."%")
-                    end
-                end
-                
-                luup.log("[MyHome] Inside="..temperature_inside..", Outside="..weather_status.temperature..", Position="..room_position..", Diff="..temperature_diff..", Min="..min_temperature);
-                
-                -- Handle zero or negative position
-                if room_position <= 0 then
-                    room_position = 0
-                    luup.log("[MyHome] Closing all windows in "..room_name.." (temperature corridor + pop "..weather_status.pop..")")
-                    room_action = "close"
-                -- Warmer inside -> open
-                elseif temperature_inside >= temperature_open
-                    and (temperature_inside + temperature_diff - 0.5) >= weather_status.temperature then
-                    luup.log("[MyHome] Opening all windows in "..room_name.." to "..room_position.."% (inside temperature "..temperature_inside.." above outside temperature "..weather_status.temperature..")")
-                    room_action = "open"
-                -- Cool inside -> close
-                elseif temperature_inside <= temperature_close then
-                    luup.log("[MyHome] Closing all windows in "..room_name.." (inside temperature "..temperature_inside.." below "..temperature_close..")")
-                    room_action = "close"
-                -- Warmer outside -> close
-                elseif (temperature_inside + temperature_diff + 0.5) <= weather_status.temperature then
-                    luup.log("[MyHome] Closing all windows in "..room_name.." (inside temperature "..temperature_inside.."+0.5 below outside temperature "..weather_status.temperature..")")
-                    room_action = "close"
-                end
-            end
-            
-            if room_action == "keep" then
-                luup.log("[MyHome] Not changing window status")
-            end
-            
-            if room_position > 0 and room_position < 20 then
-                room_position = 20
-            end
-            
-            -- TODO enable actions
-            for index,device_id in pairs(devices_search({ ["class"] = "Window", ["room_num"] = room_num })) do
-                device_auto_move(device_id,room_action,room_position)
-            end
-        end
-
-     */
 
 WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
     var self                = this;
@@ -646,12 +634,10 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
     
     // Calc duration
     if (typeof(duration) === 'undefined') {
-        var temperatureOutsideDevice    = self.getDeviceById(self.config.temperatureOutsideSensorDevice);
-        var temperatureOutside          = temperatureOutsideDevice.get('metrics:value');
-        var temperatureInsideDevice     = self.getDeviceById(self.config.zones[zoneIndex].temperatureSensor);
-        var temperatureInside           = temperatureOutsideDevice.get('metrics:value');
-        var temperatureMin              = self.config.ventilationRules.minTemperatureOutside;
-        var duration                    = self.config.ventilationRules.maxTime - self.config.ventilationRules.minTime;
+        var temperatureOutside  = self.getDeviceValue(self.config.temperatureOutsideSensorDevice);
+        var temperatureInside   = self.getTemperatureZone(self.config.zones[zoneIndex]);
+        var temperatureMin      = self.config.ventilationRules.minTemperatureOutside;
+        duration                = self.config.ventilationRules.maxTime - self.config.ventilationRules.minTime;
         
         if (temperatureOutside < temperatureMin) {
             duration = 0;
@@ -723,7 +709,6 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
             self.moveDevices(deviceObject,0);
         },(duration * 60 * 1000));
     });
-    
 };
 
 WindowControl.prototype.commandModeDevice = function(type,command,args) {
@@ -744,28 +729,40 @@ WindowControl.prototype.commandModeDevice = function(type,command,args) {
     
     device.set('metrics:level',command);
     device.set("metrics:icon", "/ZAutomation/api/v1/load/modulemedia/WindowControl/icon_"+type+"_"+command+".png");
-
 };
 
-WindowControl.prototype.getDeviceById = function(deviceId) {
+WindowControl.prototype.getTemperatureZone = function(zone) {
     var self = this;
     
-    if (typeof(deviceId) === 'undefined') {
-        return;
+    if (typeof(zone) === 'number') {
+        zone = self.config.zones[zone];
     }
-    var deviceObject = self.controller.devices.get(deviceId);
-    if (deviceObject === null) {
-        self.error('Could not find '+deviceId+' device');
-        return;
+    
+    if (typeof(zone) === 'object') {
+        var temperature = self.getDeviceValue(zone.temperatureSensor);
+        if (typeof(temperature) !== 'undefined') {
+            if (self.config.unitTemperature === 'celsius') {
+                temperature = Math.min(temperature,40); // Max 40 degrees
+                temperature = Math.max(temperature,5); // Min 5 degrees
+            } else if (self.config.unitTemperature === 'fahrenheit') {
+                temperature = Math.min(temperature,105 ); // Max 105 degrees
+                temperature = Math.max(temperature,40); // Min 40 degrees
+            }
+            return temperature;
+        }
     }
-    return deviceObject;
+    
+    // Fallback temperature
+    // TODO fallback
+    return 20;
 };
 
 WindowControl.prototype.moveDevices = function(devices,position,windowMode,offTime) {
     var self = this;
     
-    self.processDeviceList(devices,function(deviceObject){
+    self.processDeviceList(devices,function(deviceObject) {
         var deviceAuto = deviceObject.get('metrics:auto') || false;
+        // TODO handle auto
         //if ((position < 255 && deviceAuto === false) || (position === 255 && deviceAuto === true)) {
         //    return;
         //}
@@ -777,7 +774,6 @@ WindowControl.prototype.moveDevices = function(devices,position,windowMode,offTi
         } else {
             if (position >= 99) {
                 deviceObject.performCommand('on');
-                if (typeof(mode))
             } else {
                 deviceObject.performCommand('exact',{ level: position });
             }
