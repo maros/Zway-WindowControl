@@ -146,7 +146,6 @@ WindowControl.prototype.init = function (config) {
     self.ventilateCallback  = _.bind(self.processVentilate,self);
     
     self.controller.on('security.smoke.alarm',self.alarmCallback);
-    self.controller.on('security.smoke.cancel',self.alarmCallback);
     self.controller.on('security.smoke.stop',self.alarmCallback);
     self.controller.on('rain.start',self.rainCallback);
     self.controller.on(self.cronName,self.ventilateCallback);
@@ -191,7 +190,6 @@ WindowControl.prototype.stop = function () {
     
     // Unbind event callbacks
     self.controller.off('security.smoke.alarm',self.alarmCallback);
-    self.controller.off('security.smoke.cancel',self.alarmCallback);
     self.controller.off('security.smoke.stop',self.alarmCallback);
     
     // Unbind rain callbacks
