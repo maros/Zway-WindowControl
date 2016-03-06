@@ -16,30 +16,39 @@
     "options":{
         "fields":{
             "ventilationRules": {
-                "dependencies" : "ventilationActive",
+                "dependencies" : {
+                    "ventilationActive": true
+                },
                 "label": "__ventilation_rules_label__",
                 "helper": "__ventilation_rules_helper__",
+                "order": 3,
                 "fields" : {
                     "windowPosition": {
-                        "label" : "__window_position_label__"
+                        "label" : "__window_position_label__",
+                        "order": 5
                     },
                     "minTemperatureOutside":{
                         "label" : "__min_temperature_outside_label__",
-                        "helper" : "__min_temperature_outside_helper__"
+                        "helper" : "__min_temperature_outside_helper__",
+                        "order": 1
                     },
                     "minTime":{
                         "label" : "__min_time_label__",
-                        "helper" : "__min_time_helper__"
+                        "helper" : "__min_time_helper__",
+                        "order": 2
                     },
                     "maxTime":{
                         "label" : "__min_time_label__",
-                        "helper" : "__min_time_helper__"
+                        "helper" : "__min_time_helper__",
+                        "order": 3
                     },
                     "interval":{
                         "label" : "__interval_label__",
-                        "helper" : "__interval_helper__"
+                        "helper" : "__interval_helper__",
+                        "order": 4
                     },
                     "time" : {
+                        "order": 6,
                         "label" : "__time_label__",
                         "helper" : "__helper__",
                         "type":"array",
@@ -52,7 +61,10 @@
                 }
             },
             "summerRules": {
-                "dependencies" : "summerActive",
+                "order": 5,
+                "dependencies" :  {
+                    "summerActive": true
+                },
                 "label": "__summer_rules_label__",
                 "helper": "__summer_rules_helper__",
                 "fields" : {
@@ -62,7 +74,8 @@
                         "datasource":"namespaces",
                         "field" : "optionLabels",
                         "optionLabels":"namespaces:devices_thermostat:deviceName",
-                        "type":"select"
+                        "type":"select",
+                        "order": 1
                     },
                     "forecastDevice":{
                         "label":"__forecast_device_label__",
@@ -70,16 +83,21 @@
                         "datasource":"namespaces",
                         "field" : "optionLabels",
                         "optionLabels":"namespaces:devices_sensorMultilevel:deviceName",
-                        "type":"select"
+                        "type":"select","order": 2
+                        
                     },
                     "minTemperatureOutside":{
                         "label":"__min_temperature_device_label__",
-                        "helper":"__min_temperature_device_helper__"
+                        "helper":"__min_temperature_device_helper__",
+                        "order": 3
                     }
                 }
             },
             "winterRules": {
-                "dependencies" : "winterActive",
+                "order": 7,
+                "dependencies" :  {
+                    "winterActive": true
+                },
                 "label": "__winter_rules_label__",
                 "helper": "__winter_rules_helper__",
                 "fields" : {
@@ -91,18 +109,22 @@
             },
             "winterActive" : {
                 "label": "__winter_active_label__",
-                "helper": "__winter_active_helper__"
+                "helper": "__winter_active_helper__",
+                "order": 6
             },
             "summerActive" : {
                 "label": "__summer_active_label__",
-                "helper": "__summer_active_helper__"
+                "helper": "__summer_active_helper__",
+                "order": 4
             },
             "ventilationActive" : {
                 "label": "__ventilation_active_label__",
-                "helper": "__ventilation_active_helper__"
+                "helper": "__ventilation_active_helper__",
+                "order": 2
             },
             "zones":{
-                "label": "__rules_label__",
+                "order": 1,
+                "label": "__zones_label__",
                 "items":{
                     "fields":{
                         "optimize": {
@@ -146,16 +168,17 @@
                 }
             },
             "unitTemperature" : {
+                "order": 8,
                 "label" : "__unit_temperature__",
                 "optionLabels" : [
                    "°C",
                    "°F"
-                ],
-                "order" : 4
+                ]
             },
             "maxWind":{
                 "label": "__max_wind_label__",
-                "helper": "__max_wind_helper__"
+                "helper": "__max_wind_helper__",
+                "order": 9
             },
             "thermostatDevice":{
                 "label":"__thermostat_device_label__",
@@ -163,7 +186,8 @@
                 "datasource":"namespaces",
                 "field" : "optionLabels",
                 "optionLabels":"namespaces:devices_thermostat:deviceName",
-                "type":"select"
+                "type":"select",
+                "order": 11
             },
             "rainSensorDevice":{
                 "label":"__rain_sensor_device_label__",
@@ -171,7 +195,8 @@
                 "datasource":"namespaces",
                 "field" : "optionLabels",
                 "optionLabels":"namespaces:devices_sensorBinary:deviceName",
-                "type":"select"
+                "type":"select",
+                "order": 12
             },
             "windSensorDevice":{
                 "label":"__wind_sensor_device_label__",
@@ -179,7 +204,8 @@
                 "datasource":"namespaces",
                 "field" : "optionLabels",
                 "optionLabels":"namespaces:devices_sensorMultilevel:deviceName",
-                "type":"select"
+                "type":"select",
+                "order": 10
             },
             "temperatureOutsideSensorDevice":{
                 "label":"__temperature_outside_sensor_device_label__",
@@ -187,7 +213,8 @@
                 "datasource":"namespaces",
                 "field" : "optionLabels",
                 "optionLabels":"namespaces:devices_sensorMultilevel:deviceName",
-                "type":"select"
+                "type":"select",
+                "order": 13
             }
         }
     },
@@ -196,6 +223,11 @@
         "type":"git"
     },
     "schema":{
+        "dependencies" : {
+         "ventilationRules" : "ventilationActive",
+         "winterRules" : "winterActive",
+         "summerRules" : "summerActive"
+      },
         "properties":{
             "zones": {
                 "type" : "array",
@@ -241,7 +273,6 @@
                 }
             },
             "ventilationRules":{
-                "dependencies" : "ventilationActive",
                 "type": "object",
                 "properties": {
                     "windowPosition": {
@@ -285,7 +316,6 @@
                 }
             },
             "summerRules":{
-                "dependencies" : "summerActive",
                 "type": "object",
                 "properties": {
                     "thermostatDevice":{
@@ -307,7 +337,6 @@
                 }
             },
             "winterRules":{
-                "dependencies" : "winterActive",
                 "type": "object",
                 "properties": {
                     "maxOpenTime": {
@@ -358,7 +387,6 @@
                 "field":"enum",
                 "required":true
             }
-
         },
         "required":true,
         "type":"object"
