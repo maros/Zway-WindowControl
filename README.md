@@ -31,7 +31,7 @@ For developers and users of older Zway versions installation via git is
 recommended.
 
 ```shell
-cd /opt/z-way-server/automation/modules
+cd /opt/z-way-server/automation/userModules
 git clone https://github.com/maros/Zway-WindowControl.git WindowControl --branch latest
 ```
 
