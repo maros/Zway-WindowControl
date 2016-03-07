@@ -91,7 +91,7 @@ WindowControl.prototype.init = function (config) {
         });
     }
     
-    // Setup ventilation controller
+    // Setup ventilation scenes
     if (self.config.ventilateActive) {
         self.controller.on(self.cronName,_.bind(self.ventilateProcess,self));
         
@@ -109,13 +109,12 @@ WindowControl.prototype.init = function (config) {
         _.each(self.deviceId,function(zone,index) {
             self.ventilationControlDevices.push(
                 self.controller.devices.create({
-                    deviceId: "WindowControl_Ventilate_" + self.id+'_'+index,
+                    deviceId: "WindowControl_Ventilate_" + self.id+'_Zone'+index,
                     defaults: {
                         metrics: {
                             level: 'off',
                             title: self.langFile.ventilateTitle+' '+index,
                             icon: "/ZAutomation/api/v1/load/modulemedia/WindowControl/icon_ventialte.png"
-
                         },
                     },
                     overlay: {
@@ -271,7 +270,7 @@ WindowControl.prototype.processRain = function(event) {
     var self = this;
     
     self.log('Detected rain. Closing all windows');
-    self.moveDevices(self.allDevices,0);
+    self.moveDevices(self.allDevices,0,'none');
 };
 
 WindowControl.prototype.checkRain = function () {
@@ -310,14 +309,14 @@ WindowControl.prototype.checkConditions = function() {
     // Check rain
     if (self.checkRain()) {
         self.log('Closing all windows due to rain');
-        self.moveDevices(self.allDevices,0);
+        self.moveDevices(self.allDevices,0,'none');
         return;
     }
     
     // Check rain
     if (self.checkWind()) {
         self.log('Closing all windows due to wind');
-        self.moveDevices(self.allDevices,0);
+        self.moveDevices(self.allDevices,0,'none');
         return;
     }
     
@@ -340,7 +339,7 @@ WindowControl.prototype.checkOffTime = function(devices) {
         if (typeof(offTime) === 'number' 
             && offTime < now) {
             self.log('Close window after off time '+deviceObject.id);
-            sekf.moveDevices(deviceObject,0);
+            sekf.moveDevices(deviceObject,0,'none');
         }
     });
 };
@@ -611,9 +610,6 @@ WindowControl.prototype.processVentilate = function() {
     });
 };
 
-
-
-
 WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
     var self                = this;
     args                    = args || {};
@@ -690,7 +686,9 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
     
     self.log('Ventilate zone '+zoneIndex);
     
-    self.processDeviceList(self.config.zones[zone].windowDevices,function(deviceObject) {
+    self.ventilationControlDevices[zoneIndex].set('metrics:icon',"/ZAutomation/api/v1/load/modulemedia/WindowControl/icon_ventialte_on.png");
+    
+    self.processDeviceList(self.config.zones[zoneIndex].windowDevices,function(deviceObject) {
         var deviceAuto  = deviceObject.get('metrics:auto') || false;
         var deviceLevel = deviceObject.get('metrics:level') || 0;
         var deviceMode  = deviceObject.get('metrics:windowMode') || 'none';
@@ -701,12 +699,16 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
         }
         
         self.moveDevices(deviceObject,windowPosition,'ventilate',offTime);
-        
-        setTimeout(function() {
-            self.log('Stop ventilate window '+deviceObject.id);
-            self.moveDevices(deviceObject,0);
-        },(duration * 60 * 1000));
     });
+    
+    setTimeout(_.bind(self.processStopVentilate,self),(duration * 60 * 1000));
+};
+
+WindowControl.prototype.processStopVentilate = function(zoneIndex) {
+    self.log('Stop ventilate zone '+zoneIndex);
+
+    self.ventilationControlDevices[zoneIndex].set('metrics:icon',"/ZAutomation/api/v1/load/modulemedia/WindowControl/icon_ventialte.png");
+    self.moveDevices(self.config.zones[zoneIndex].windowDevices,0,'none');
 };
 
 WindowControl.prototype.commandModeDevice = function(type,command,args) {
