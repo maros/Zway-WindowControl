@@ -53,7 +53,7 @@ WindowControl.prototype.init = function (config) {
                         active: [],
                         title: self.langFile[type+'_active_label'],
                         level: 'off',
-                        icon: '/ZAutomation/api/v1/load/modulemedia/WindowControl/icon_'+type+'_off.png'
+                        icon: self.imagePath+'/icon_'+type+'_off.png'
                     }
                 },
                 handler: _.bind(self.commandModeDevice,self,type),
@@ -114,7 +114,7 @@ WindowControl.prototype.init = function (config) {
                         metrics: {
                             level: 'off',
                             title: self.langFile.ventilateTitle+' '+index,
-                            icon: "/ZAutomation/api/v1/load/modulemedia/WindowControl/icon_ventialte.png"
+                            icon: self.imagePath+"/icon_ventialte.png"
                         },
                     },
                     overlay: {
@@ -686,7 +686,7 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
     
     self.log('Ventilate zone '+zoneIndex);
     
-    self.ventilationControlDevices[zoneIndex].set('metrics:icon',"/ZAutomation/api/v1/load/modulemedia/WindowControl/icon_ventialte_on.png");
+    self.ventilationControlDevices[zoneIndex].set('metrics:icon',self.imagePath+"/icon_ventialte_on.png");
     
     self.processDeviceList(self.config.zones[zoneIndex].windowDevices,function(deviceObject) {
         var deviceAuto  = deviceObject.get('metrics:auto') || false;
@@ -707,7 +707,7 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
 WindowControl.prototype.processStopVentilate = function(zoneIndex) {
     self.log('Stop ventilate zone '+zoneIndex);
 
-    self.ventilationControlDevices[zoneIndex].set('metrics:icon',"/ZAutomation/api/v1/load/modulemedia/WindowControl/icon_ventialte.png");
+    self.ventilationControlDevices[zoneIndex].set('metrics:icon',self.imagePath+"/icon_ventialte.png");
     self.moveDevices(self.config.zones[zoneIndex].windowDevices,0,'none');
 };
 
@@ -728,7 +728,7 @@ WindowControl.prototype.commandModeDevice = function(type,command,args) {
     }
     
     device.set('metrics:level',command);
-    device.set("metrics:icon", "/ZAutomation/api/v1/load/modulemedia/WindowControl/icon_"+type+"_"+command+".png");
+    device.set("metrics:icon", self.imagePath+"/icon_"+type+"_"+command+".png");
 };
 
 WindowControl.prototype.getTemperatureZone = function(zone) {
