@@ -80,6 +80,7 @@ WindowControl.prototype.init = function (config) {
                 },
             },
             overlay: {
+                probeType: 'thermostat_set_point',
                 deviceType: 'thermostat'
             },
             handler: function(command, args) {
@@ -95,6 +96,7 @@ WindowControl.prototype.init = function (config) {
     if (self.config.ventilateActive) {
         self.controller.on(self.cronName,_.bind(self.ventilateProcess,self));
         
+        // Set ventilation times
         _.each(self.config.ventilationRules.time,function(time) {
             var parsedTime = self.parseTime(time);
             self.controller.emit("cron.addTask",self.cronName, {
@@ -118,7 +120,7 @@ WindowControl.prototype.init = function (config) {
                         },
                     },
                     overlay: {
-                        probeType: 'Scene',
+                        probeType: 'scene',
                         deviceType: 'toggleButton'
                     },
                     handler: function(command, args) {
