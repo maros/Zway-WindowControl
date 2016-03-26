@@ -93,8 +93,8 @@ WindowControl.prototype.init = function (config) {
     }
     
     // Setup ventilation scenes
-    if (self.config.ventilateActive) {
-        self.controller.on(self.cronName,_.bind(self.ventilateProcess,self));
+    if (self.config.ventilationActive) {
+        self.controller.on(self.cronName,_.bind(self.processVentilate,self));
         
         // Set ventilation times
         _.each(self.config.ventilationRules.time,function(time) {
@@ -108,7 +108,8 @@ WindowControl.prototype.init = function (config) {
             });
         });
         
-        _.each(self.deviceId,function(zone,index) {
+        _.each(self.config.zones,function(zone,index) {
+            self.log('Create ventilation device for '+index);
             self.ventilationControlDevices.push(
                 self.controller.devices.create({
                     deviceId: "WindowControl_Ventilate_" + self.id+'_Zone'+index,
@@ -116,7 +117,7 @@ WindowControl.prototype.init = function (config) {
                         metrics: {
                             level: 'off',
                             title: self.langFile.ventilateTitle+' '+index,
-                            icon: self.imagePath+"/icon_ventialte.png"
+                            icon: self.imagePath+"/icon_ventilate.png"
                         },
                     },
                     overlay: {
@@ -176,7 +177,7 @@ WindowControl.prototype.stop = function () {
     self.thermostatDevice = undefined;
     
     // Reset ventilation devices
-    if (self.config.ventilateActive) {
+    if (self.config.ventilationActive) {
         _.each(self.ventilationControlDevices,function(deviceObject) {
             self.controller.devices.remove(deviceObject.id);
         });
@@ -204,6 +205,7 @@ WindowControl.prototype.stop = function () {
     self.controller.emit("cron.removeTask", self.cronName);
     self.controller.off(self.cronName,self.ventilateCallback);
     
+    // Reset callbacks
     self.alarmCallback      = undefined;
     self.rainCallback       = undefined;
     self.ventilateCallback  = undefined;
@@ -296,7 +298,7 @@ WindowControl.prototype.checkWind = function () {
     var windLevel   = self.getDeviceValue(self.config.windSensorDevice);
     var windMax     = self.config.maxWind;
     if (typeof(windLevel) !== 'undefined'
-        && windMax > windLyevel) {
+        && windLevel > windMax) {
         return true;
     }
     
@@ -358,7 +360,6 @@ WindowControl.prototype.processWinter = function() {
     
     _.each(self.config.zones,function(zone,index) {
         var temperatureInside = self.getTemperatureZone(zone);
-        var zoneStatus = self.winterDevice.get('metrics:zone'+index) || false;
         
         _.each(zone.windowDevices,function(deviceId) {
             var deviceObject = self.controller.devices.get(deviceId);
@@ -406,7 +407,7 @@ WindowControl.prototype.processSummer = function() {
     var thermostatSetpoint = self.thermostatDevice.get('metrics:value');
 
     /*
-
+        TODO
         
         // Get desired temperature
         
@@ -601,7 +602,9 @@ WindowControl.prototype.processVentilate = function() {
     var temperatureOutside = self.getDeviceValue(self.config.temperatureOutsideSensorDevice);
     
     // Check wind, rain & temperature
-    if (self.checkRain() || self.checkWind() || temperatureOutside < self.config.ventilationRules.minTemperatureOutside) {
+    if (self.checkRain() 
+        || self.checkWind()
+        || temperatureOutside < self.config.ventilationRules.minTemperatureOutside) {
         self.log('Ignoring ventilation due to wind/rain/low temperature');
         return;
     }
@@ -646,6 +649,8 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
         }
         
         duration = self.config.ventilationRules.minTime + duration;
+        self.log('Calculated duration '+duration);
+
     }
     var offTime = now + (duration * 60);
     
@@ -686,9 +691,9 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
         }
     }
     
-    self.log('Ventilate zone '+zoneIndex);
+    self.log('Ventilate zone '+zoneIndex+' for '+duration+' seconds');
     
-    self.ventilationControlDevices[zoneIndex].set('metrics:icon',self.imagePath+"/icon_ventialte_on.png");
+    self.ventilationControlDevices[zoneIndex].set('metrics:icon',self.imagePath+"/icon_ventilate_on.png");
     
     self.processDeviceList(self.config.zones[zoneIndex].windowDevices,function(deviceObject) {
         var deviceAuto  = deviceObject.get('metrics:auto') || false;
@@ -709,7 +714,7 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
 WindowControl.prototype.processStopVentilate = function(zoneIndex) {
     self.log('Stop ventilate zone '+zoneIndex);
 
-    self.ventilationControlDevices[zoneIndex].set('metrics:icon',self.imagePath+"/icon_ventialte.png");
+    self.ventilationControlDevices[zoneIndex].set('metrics:icon',self.imagePath+"/icon_ventilate.png");
     self.moveDevices(self.config.zones[zoneIndex].windowDevices,0,'none');
 };
 
@@ -741,7 +746,7 @@ WindowControl.prototype.getTemperatureZone = function(zone) {
     }
     
     if (typeof(zone) === 'object') {
-        var temperature = self.getDeviceValue(zone.temperatureSensor);
+        var temperature = self.getDeviceValue(zone.temperatureSensorDevice);
         if (typeof(temperature) !== 'undefined') {
             if (self.config.unitTemperature === 'celsius') {
                 temperature = Math.min(temperature,40); // Max 40 degrees
