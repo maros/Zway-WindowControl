@@ -22,7 +22,6 @@
                     "ventilationActive": true
                 },
                 "label": "__ventilation_rules_label__",
-                "helper": "__ventilation_rules_helper__",
                 "order": 3,
                 "fields" : {
                     "windowPosition": {
@@ -36,12 +35,14 @@
                     },
                     "minTime":{
                         "label" : "__min_time_label__",
-                        "helper" : "__min_time_helper__",
+                                                "helper": "__time2_helper__",
+                        
                         "order": 2
                     },
                     "maxTime":{
                         "label" : "__max_time_label__",
-                        "helper" : "__max_time_helper__",
+                                                "helper": "__time2_helper__",
+                        
                         "order": 3
                     },
                     "interval":{
@@ -52,7 +53,7 @@
                     "time" : {
                         "order": 6,
                         "label" : "__time_label__",
-                        "helper" : "__helper__",
+                        "helper" : "__time_helper__",
                         "items":{
                             "pattern" : "^([01]?[0-9]|2[0-3]):([0-5][0-9])$",
                             "placeholder" : "__time_placeholder__"
@@ -66,7 +67,6 @@
                     "summerActive": true
                 },
                 "label": "__summer_rules_label__",
-                "helper": "__summer_rules_helper__",
                 "fields" : {
                     "thermostatDevice":{
                         "label":"__thermostat_device_label__",
@@ -99,11 +99,10 @@
                     "winterActive": true
                 },
                 "label": "__winter_rules_label__",
-                "helper": "__winter_rules_helper__",
                 "fields" : {
                     "maxOpenTime": {
                         "label": "__max_open_time_label__",
-                        "helper": "__max_open_time_helper__"
+                        "helper": "__time2_helper__"
                     }
                 }
             },
@@ -135,8 +134,8 @@
                                 "__optimize_temperature__"
                              ]
                         },
-                        "temperatureSensor":{
-                            "label":"__temperature_inside_sensor_label__",
+                        "temperatureSensorDevice":{
+                            "label":"__temperature_inside_sensor_device_label__",
                             "datasource":"namespaces",
                             "field" : "optionLabels",
                             "optionLabels":"namespaces:devices_sensorMultilevel:deviceName",
@@ -236,13 +235,14 @@
                     "type":"object",
                     "properties":{
                         "optimize": {
+                            "required": true,
                             "enum":[
                                 "movement",
                                 "temperature"
                              ],
                              "default": "temperature"
                         },
-                        "temperatureSensor":{
+                        "temperatureSensorDevice":{
                             "datasource":"namespaces",
                             "enum":"namespaces:devices_sensorMultilevel:deviceId",
                             "field":"enum",
