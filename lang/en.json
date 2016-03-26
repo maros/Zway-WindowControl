@@ -46,5 +46,7 @@
    "winter_active_helper" : "Enables winter operation mode. In this mode windows will be opened if outside temperature is higher than the inside temperature",
    "winter_active_label" : "Enable Winter mode",
    "winter_rules_label" : "Winter mode settings",
-   "zones_label" : "Zones"
+   "zones_label" : "Zones",
+   "ventilation_title": "Ventilate Zone",
+   "target_temperature_title": "Target temperature"
 }

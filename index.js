@@ -58,7 +58,7 @@ WindowControl.prototype.init = function (config) {
                 },
                 handler: _.bind(self.commandModeDevice,self,type),
                 overlay: {
-                    probeType: 'WindowController',
+                    probeType: 'controller_window',
                     deviceType: 'switchBinary'
                 },
                 moduleId: self.id
@@ -76,7 +76,7 @@ WindowControl.prototype.init = function (config) {
                     scaleTitle: config.unitTemperature === "celsius" ? '°C' : '°F',
                     level: config.unitTemperature === "celsius" ? 24 : 75,
                     icon: 'thermostat',
-                    title: self.langFile.thermostat
+                    title: self.langFile.target_temperature_title
                 },
             },
             overlay: {
@@ -116,12 +116,12 @@ WindowControl.prototype.init = function (config) {
                     defaults: {
                         metrics: {
                             level: 'off',
-                            title: self.langFile.ventilateTitle+' '+index,
+                            title: self.langFile.ventilation_title+' '+index,
                             icon: self.imagePath+"/icon_ventilate.png"
                         },
                     },
                     overlay: {
-                        probeType: 'scene',
+                        probeType: 'scene_ventilate',
                         deviceType: 'toggleButton'
                     },
                     handler: function(command, args) {
@@ -338,6 +338,18 @@ WindowControl.prototype.checkOffTime = function(devices) {
     var self = this;
     var now  = Math.floor(new Date().getTime() / 1000);
 
+    // Check ventilate
+    _.each(self.config.zones,function(zone,zoneIndex) {
+        var controlDevice = self.ventilationControlDevices[zoneIndex];
+        var offTime = controlDevice.get('metrics:offTime');
+        if (self.config.ventilationActive
+            && controlDevice.get('metrics:level') === 'on'
+            && typeof(offTime) === 'number' 
+            && offTime < now) {
+            self.processStopVentilate(zoneIndex);
+        }
+    });
+    
     _.each(devices,function(deviceObject) {
         var offTime = deviceObject.get('metrics:offTime');
         if (typeof(offTime) === 'number' 
@@ -621,9 +633,10 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
     var forceVentilate      = args.force || false;
     var duration            = args.duration;
     var lastVentilationDiff = args.last || self.config.ventilationRules.interval;
-    lastVentilationDiff     = last * 60;
+    lastVentilationDiff     = lastVentilationDiff * 60;
     var windowPosition      = args.position || self.config.ventilationRules.windowPosition || 50;
     var now                 = Math.floor(new Date().getTime() / 1000);
+    var controlDevice       = self.ventilationControlDevices[zoneIndex];
     
     // Check wind & rain
     if (self.checkRain() || self.checkWind()) {
@@ -650,7 +663,6 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
         
         duration = self.config.ventilationRules.minTime + duration;
         self.log('Calculated duration '+duration);
-
     }
     var offTime = now + (duration * 60);
     
@@ -691,9 +703,11 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
         }
     }
     
-    self.log('Ventilate zone '+zoneIndex+' for '+duration+' seconds');
+    self.log('Ventilate zone '+zoneIndex+' for '+duration+' minutes');
     
-    self.ventilationControlDevices[zoneIndex].set('metrics:icon',self.imagePath+"/icon_ventilate_on.png");
+    controlDevice.set('metrics:offTime',offTime);
+    controlDevice.set('metrics:level','on');
+    controlDevice.set('metrics:icon',self.imagePath+"/icon_ventilate_on.png");
     
     self.processDeviceList(self.config.zones[zoneIndex].windowDevices,function(deviceObject) {
         var deviceAuto  = deviceObject.get('metrics:auto') || false;
@@ -712,10 +726,14 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
 };
 
 WindowControl.prototype.processStopVentilate = function(zoneIndex) {
+    var self = this;
     self.log('Stop ventilate zone '+zoneIndex);
-
-    self.ventilationControlDevices[zoneIndex].set('metrics:icon',self.imagePath+"/icon_ventilate.png");
+    var controlDevice = self.ventilationControlDevices[zoneIndex];
+    
     self.moveDevices(self.config.zones[zoneIndex].windowDevices,0,'none');
+    controlDevice.set('metrics:offTime',undefined);
+    controlDevice.set('metrics:icon',self.imagePath+"/icon_ventilate.png");
+    controlDevice.set('metrics:level',"off");
 };
 
 WindowControl.prototype.commandModeDevice = function(type,command,args) {
@@ -773,7 +791,7 @@ WindowControl.prototype.moveDevices = function(devices,position,windowMode,offTi
         //if ((position < 255 && deviceAuto === false) || (position === 255 && deviceAuto === true)) {
         //    return;
         //}
-        self.error('Auto move window '+deviceId+' to '+position);
+        self.log('Auto move window '+deviceObject.id+' to '+position);
         if (position === 0) {
             deviceObject.set('metrics:auto',false);
             deviceObject.set('metrics:offTime',null);
