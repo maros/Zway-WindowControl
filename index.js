@@ -58,7 +58,7 @@ WindowControl.prototype.init = function (config) {
                 },
                 handler: _.bind(self.commandModeDevice,self,type),
                 overlay: {
-                    probeType: 'controller_window',
+                    probeType: 'controller_window_'+type,
                     deviceType: 'switchBinary'
                 },
                 moduleId: self.id
@@ -133,7 +133,7 @@ WindowControl.prototype.init = function (config) {
                             if (typeof(args.last) === 'undefined') {
                                 args.last = 0;
                             }
-                            self.processVentilateZone(index,args);
+                            return self.processVentilateZone(index,args);
                         }
                     },
                     moduleId: self.id
