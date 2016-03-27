@@ -723,6 +723,8 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
     });
     
     setTimeout(_.bind(self.processStopVentilate,self),(duration * 60 * 1000));
+    
+    return duration * 60;
 };
 
 WindowControl.prototype.processStopVentilate = function(zoneIndex) {
