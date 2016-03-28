@@ -44,9 +44,13 @@
    "window_position_label" : "Window postion (1-100)",
    "window_sensors_label" : "Window sensors device",
    "winter_active_helper" : "Enables winter operation mode. In this mode windows will be opened if outside temperature is higher than the inside temperature",
-   "winter_active_label" : "Enable Winter mode",
+   "winter_active_label" : "Enable sinter mode",
    "winter_rules_label" : "Winter mode settings",
    "zones_label" : "Zones",
    "ventilation_title": "Ventilate Zone",
-   "target_temperature_title": "Target temperature"
+   "target_temperature_title": "Target temperature",
+   "winter_title": "Winter windows mode",
+   "summer_title": "Summer windows mode",
+   "ventilation_title": "Automatic ventilation"
+   
 }

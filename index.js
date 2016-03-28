@@ -51,7 +51,7 @@ WindowControl.prototype.init = function (config) {
                 defaults: {
                     metrics: {
                         active: [],
-                        title: self.langFile[type+'_active_label'],
+                        title: self.langFile[type+'_title'],
                         level: 'off',
                         icon: self.imagePath+'/icon_'+type+'_off.png'
                     }
