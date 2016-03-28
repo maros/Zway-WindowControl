@@ -223,7 +223,7 @@ WindowControl.prototype.initCallback = function() {
     });
     self.windowDevices = _.uniq(_.flatten(devices));
     
-    self.checkOffTime(self.windowDevices);
+    self.checkDevices();
     
     // Get thermostat device
     if (self.config.summerActive
@@ -308,7 +308,7 @@ WindowControl.prototype.checkWind = function () {
 WindowControl.prototype.checkConditions = function() {
     var self = this;
     
-    self.checkOffTime(self.windowDevices);
+    self.checkDevices();
     
     // Check rain
     if (self.checkRain()) {
@@ -334,7 +334,7 @@ WindowControl.prototype.checkConditions = function() {
     });
 };
 
-WindowControl.prototype.checkOffTime = function(devices) {
+WindowControl.prototype.checkDevices = function() {
     var self = this;
     var now  = Math.floor(new Date().getTime() / 1000);
 
@@ -350,12 +350,24 @@ WindowControl.prototype.checkOffTime = function(devices) {
         }
     });
     
-    _.each(devices,function(deviceObject) {
-        var offTime = deviceObject.get('metrics:offTime');
+    // Check off time & mode
+    _.each(self.windowDevices,function(deviceObject) {
+        var offTime     = deviceObject.get('metrics:offTime');
+        var level       = deviceObject.get('metrics:level');
+        var auto        = deviceObject.get('metrics:auto');
+        var deviceMode  = deviceObject.get('metrics:windowMode') || 'none';
         if (typeof(offTime) === 'number' 
-            && offTime < now) {
+            && offTime < now
+            && level > 0
+            && auto === true) {
             self.log('Close window after off time '+deviceObject.id);
-            sekf.moveDevices(deviceObject,0,'none');
+            self.moveDevices(deviceObject,0,'none');
+        }
+        if (level === 0
+            && (auto === true || deviceMode !== 'none')) {
+            self.log('Fix device mode mismatch');
+            deviceObject.set('metrics:windowMode','none');
+            deviceObject.set('metrics:auto',false);
         }
     });
 };
@@ -715,7 +727,7 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
         var deviceMode  = deviceObject.get('metrics:windowMode') || 'none';
         
         if (deviceMode !== 'none' || deviceAuto === true) {
-            self.log('Skipping window '+deviceObject.id);
+            self.log('Skipping window '+deviceObject.id+' Current mode:'+deviceMode+', Auto:'+deviceAuto);
             return;
         }
         
@@ -797,6 +809,7 @@ WindowControl.prototype.moveDevices = function(devices,position,windowMode,offTi
         if (position === 0) {
             deviceObject.set('metrics:auto',false);
             deviceObject.set('metrics:offTime',null);
+            deviceObject.set('metrics:windowMode','none');
             deviceObject.performCommand('off');
         } else {
             if (position >= 99) {
