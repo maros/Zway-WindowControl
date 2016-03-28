@@ -674,7 +674,7 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
         }
         
         duration = self.config.ventilationRules.minTime + duration;
-        self.log('Calculated duration '+duration);
+        self.log('Calculated duration '+duration+' minutes');
     }
     var offTime = now + (duration * 60);
     
@@ -726,8 +726,8 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
         var deviceLevel = deviceObject.get('metrics:level') || 0;
         var deviceMode  = deviceObject.get('metrics:windowMode') || 'none';
         
-        if (deviceMode !== 'none' || deviceAuto === true) {
-            self.log('Skipping window '+deviceObject.id+' Current mode:'+deviceMode+', Auto:'+deviceAuto);
+        if ((deviceMode !== 'none' || deviceAuto === true) && deviceLevel > 0)  {
+            self.log('Skipping window '+deviceObject.id+' Current mode:'+ deviceMode+', Auto:'+deviceAuto);
             return;
         }
         
