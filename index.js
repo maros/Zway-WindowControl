@@ -683,7 +683,7 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
         var lastVentilation = [];
         
         // Get all window sensors
-        self.processDeviceList(self.config.zones[zone].windowSensors,function(deviceObject) {
+        self.processDeviceList(self.config.zones[zoneIndex].windowSensors,function(deviceObject) {
             if (deviceObject.get('metrics:level') === 'on') {
                 self.log('Zone '+zoneIndex+' already ventilated - sensor. Skipping');
                 ventilating = true;
@@ -695,7 +695,7 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
         if (ventilating) return;
         
         // Get all window sensors
-        self.processDeviceList(self.config.zones[zone].windowDevices,function(deviceObject) {
+        self.processDeviceList(self.config.zones[zoneIndex].windowDevices,function(deviceObject) {
             if (deviceObject.get('metrics:level') > 0) {
                 self.log('Zone '+zoneIndex+' already ventilated - window. Skipping');
                 ventilating = true;
@@ -765,6 +765,8 @@ WindowControl.prototype.commandModeDevice = function(type,command,args) {
             self.summerDevice.performCommand('off');
         }
     }
+    
+    // TODO close all windows that were opened based on this controller
     
     device.set('metrics:level',command);
     device.set("metrics:icon", self.imagePath+"/icon_"+type+"_"+command+".png");
