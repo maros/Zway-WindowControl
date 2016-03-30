@@ -375,8 +375,6 @@ WindowControl.prototype.checkDevices = function() {
 WindowControl.prototype.processWinter = function() {
     var self = this;
     
-    self.log('Process winter rules');
-    
     var temperatureOutside  = self.getDeviceValue(self.config.temperatureOutsideSensorDevice);
     var now                 = Math.floor(new Date().getTime() / 1000);
     var limit               = now - self.config.winterRules.maxOpenTime * 60;
@@ -410,6 +408,8 @@ WindowControl.prototype.processWinter = function() {
                 && lastChange < limit) {
                 action = 'close';
                 self.log('Closing window in zone '+index+' max winter open time');
+            } else {
+                self.log('Not moving window in zone '+index+'. Outside:'+ temperatureOutside+' Inside:'+temperatureInside+' Mode:'+deviceMode);
             }
             
             if (action === 'close') {
