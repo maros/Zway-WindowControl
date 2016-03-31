@@ -662,16 +662,19 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
         var temperatureOutside  = self.getDeviceValue(self.config.temperatureOutsideSensorDevice);
         var temperatureInside   = self.getTemperatureZone(self.config.zones[zoneIndex]);
         var temperatureMin      = self.config.ventilationRules.minTemperatureOutside;
-        duration                = self.config.ventilationRules.maxTime - self.config.ventilationRules.minTime;
+        var durationDiff        = self.config.ventilationRules.maxTime - self.config.ventilationRules.minTime;
         
         if (temperatureOutside < temperatureMin) {
-            duration = 0;
             if (! forceVentilate) {
                 return;
             }
+            duration = 0;
         } else {
-            var diff = Math.min((temperatureOutside - temperatureMin)/(temperatureInside - temperatureOutside),1);
-            duration = duration * diff;
+            var tempDiff = (temperatureOutside - temperatureMin);
+            var tempGradient = (temperatureInside - temperatureMin);
+            var timeDiff = tempDiff / tempGradient;
+            timeDiff = Math.min(Math.max(timeDiff,0),1);
+            duration = timeDiff * durationDiff;
         }
         
         duration = self.config.ventilationRules.minTime + duration;
