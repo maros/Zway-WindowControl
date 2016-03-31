@@ -735,7 +735,7 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
         self.moveDevices(deviceObject,windowPosition,'ventilate',offTime);
     });
     
-    setTimeout(_.bind(self.processStopVentilate,self),(duration * 60 * 1000));
+    setTimeout(_.bind(self.processStopVentilate,self,zoneIndex),(duration * 60 * 1000));
     
     return duration * 60;
 };
