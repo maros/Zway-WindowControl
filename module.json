@@ -35,14 +35,12 @@
                     },
                     "minTime":{
                         "label" : "__min_time_label__",
-                                                "helper": "__time2_helper__",
-                        
+                        "helper": "__time2_helper__",
                         "order": 2
                     },
                     "maxTime":{
                         "label" : "__max_time_label__",
-                                                "helper": "__time2_helper__",
-                        
+                        "helper": "__time2_helper__",
                         "order": 3
                     },
                     "interval":{
@@ -76,15 +74,6 @@
                         "optionLabels":"namespaces:devices_thermostat:deviceName",
                         "type":"select",
                         "order": 1
-                    },
-                    "forecastDevice":{
-                        "label":"__forecast_device_label__",
-                        "helper":"__forecast_device_helper__",
-                        "datasource":"namespaces",
-                        "field" : "optionLabels",
-                        "optionLabels":"namespaces:devices_sensorMultilevel:deviceName",
-                        "type":"select","order": 2
-                        
                     },
                     "minTemperatureOutside":{
                         "label":"__min_temperature_outside_label__",
@@ -321,12 +310,6 @@
                         "datasource":"namespaces",
                         "enum":"namespaces:devices_thermostat:deviceId",
                         "field":"enum"
-                    },
-                    "forecastDevice":{
-                        "datasource":"namespaces",
-                        "enum":"namespaces:devices_sensorMultilevel:deviceId",
-                        "field":"enum",
-                        "required":true
                     },
                     "minTemperatureOutside":{
                         "type":"number",
