@@ -394,17 +394,18 @@ WindowControl.prototype.processWinter = function() {
             var deviceLevel = deviceObject.get('metrics:level') || 0;
             var deviceMode  = deviceObject.get('metrics:windowMode') || 'none';
             var lastChange  = deviceObject.get('metrics:modificationTime') || now;
+            var debug       = 'Outside:'+ temperatureOutside+' Inside:'+temperatureInside+' Mode:'+deviceMode+' Level:'+deviceLevel;
             
             if (temperatureOutside > (temperatureInside + 0.2)
                 && deviceMode === 'none') {
                 action = 'open';
-                self.log('Opening window in zone '+index+' due to high outside temperature');
+                self.log('Opening window in zone '+index+' due to high outside temperature. '+debug);
             } else if (deviceMode === 'winter'
                 && deviceAuto === true
                 && deviceLevel > 0
                 && temperatureOutside < temperatureInside) {
                 action = 'close';
-                self.log('Closing window in zone '+index+' after it was opened due to high outside temperature');
+                self.log('Closing window in zone '+index+' after it was opened due to high outside temperature. '+ debug);
             } else if (deviceAuto === true
                 && deviceLevel > 0
                 && lastChange < limit
@@ -412,7 +413,7 @@ WindowControl.prototype.processWinter = function() {
                 action = 'close';
                 self.log('Closing window in zone '+index+' max winter open time');
             } else {
-                self.log('Not moving window in zone '+index+'. Outside:'+ temperatureOutside+' Inside:'+temperatureInside+' Mode:'+deviceMode+' Level:'+deviceLevel);
+                self.log('Not moving window in zone '+index+'. '+debug);
             }
             
             if (action === 'close') {
