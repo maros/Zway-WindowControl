@@ -341,12 +341,14 @@ WindowControl.prototype.checkDevices = function() {
     // Check ventilate
     _.each(self.config.zones,function(zone,zoneIndex) {
         var controlDevice = self.ventilationControlDevices[zoneIndex];
-        var offTime = controlDevice.get('metrics:offTime');
-        if (self.config.ventilationActive
-            && controlDevice.get('metrics:level') === 'on'
-            && typeof(offTime) === 'number' 
-            && offTime < now) {
-            self.processStopVentilate(zoneIndex);
+        if (typeof(controlDevice) !== 'undefined') {
+            var offTime = controlDevice.get('metrics:offTime');
+            if (self.config.ventilationActive
+                && controlDevice.get('metrics:level') === 'on'
+                && typeof(offTime) === 'number' 
+                && offTime < now) {
+                self.processStopVentilate(zoneIndex);
+            }
         }
     });
     
