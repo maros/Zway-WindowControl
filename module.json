@@ -223,6 +223,9 @@
                 "type" : "array",
                 "minItem":1,
                 "items":{
+                    "defaults": {
+                        "setpointDiff": 0
+                    },
                     "type":"object",
                     "properties":{
                         "optimize": {
@@ -259,6 +262,9 @@
                                 "required":true
                             },
                             "uniqueItems":true
+                        },
+                        "setpointDiff": {
+                            "type": "number"
                         }
                     }
                 }

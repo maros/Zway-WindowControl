@@ -547,8 +547,10 @@ WindowControl.prototype.processSummer = function() {
     // Process zones
     _.each(self.config.zones,function(zone,index) {
         var temperatureInside   = self.getTemperatureZone(zone);
+        var setpointDiff        = zone.setpointDiff || 0;
         var roomAction          = 'keep';
         var zonePosition        = windowPosition;
+        var zoneSetpoint        = thermostatSetpoint + setpointDiff;
         // Corridor
         if (temperatureOutside < thermostatSetpoint
             && forecastLow < TEMPERATURE.NIGHT
