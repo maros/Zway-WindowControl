@@ -274,7 +274,7 @@ WindowControl.prototype.processRain = function(event) {
     var self = this;
     
     self.log('Detected rain. Closing all windows');
-    self.moveDevices(self.allDevices,0,'none');
+    self.moveDevices(self.windowDevices,0,'none');
 };
 
 WindowControl.prototype.checkRain = function () {
@@ -313,14 +313,14 @@ WindowControl.prototype.checkConditions = function() {
     // Check rain
     if (self.checkRain()) {
         self.log('Closing all windows due to rain');
-        self.moveDevices(self.allDevices,0,'none');
+        self.moveDevices(self.windowDevices,0,'none');
         return;
     }
     
     // Check rain
     if (self.checkWind()) {
         self.log('Closing all windows due to wind');
-        self.moveDevices(self.allDevices,0,'none');
+        self.moveDevices(self.windowDevices,0,'none');
         return;
     }
     
@@ -476,9 +476,12 @@ WindowControl.prototype.processSummer = function() {
     }
     
     // Calculate window open/close thresholds
-    if (typeof(forecastDevice) !== 'undefined') {
+    if (typeof(forecastDevice) !== 'undefined'
+        && typeof(conditionDevice) !== 'undefined') {
         forecastLow = forecastDevice.get('metrics:low');
         forecastHigh = forecastDevice.get('metrics:high');
+        var temperatureChange = conditionDevice.get('metrics:temperatureChange');
+        if (temperatureChange)
     // Try to guess forecast
     } else {
         // TODO now.getHour()
