@@ -133,6 +133,12 @@ WindowControl.prototype.init = function (config) {
                             if (typeof(args.last) === 'undefined') {
                                 args.last = 0;
                             }
+                            // Check wind, rain & temperature
+                            if (self.checkRain()
+                                || self.checkWind()) {
+                                self.log('Ignoring ventilation due to wind/rain');
+                                return 0;
+                            }
                             return self.processVentilateZone(index,args);
                         }
                     },
