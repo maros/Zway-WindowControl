@@ -153,6 +153,10 @@
                                     "type":"select"
                                 }
                             }
+                        },
+                        "setpointDiff": {
+                            "label": "__setpoint_diff_label__",
+                            "helper": "__setpoint_diff_helper__"
                         }
                     }
                 }
