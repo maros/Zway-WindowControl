@@ -445,7 +445,7 @@ WindowControl.prototype.processSummer = function() {
     var windMax             = self.config.maxWind;
     var minTemperature      = self.config.summerRules.minTemperatureOutside;
     var conditionDevice     = self.getDevice([['probeType','=','condition']]);
-    var forecastDevice      = self.getDevice([['probeType','=','forecast']]);
+    var forecastDevice      = self.getDevice([['probeType','=','forecast_range']]);
     var windowPosition      = 100;
     var operationMode       = 'default';
     var temperatureDiff     = 0;
