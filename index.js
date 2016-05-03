@@ -645,7 +645,7 @@ WindowControl.prototype.processVentilate = function() {
     var temperatureOutside = self.getDeviceValue(self.config.temperatureOutsideSensorDevice);
     
     // Check wind, rain & temperature
-    if (self.checkRain() 
+    if (self.checkRain()
         || self.checkWind()
         || temperatureOutside < self.config.ventilationRules.minTemperatureOutside) {
         self.log('Ignoring ventilation due to wind/rain/low temperature');
@@ -696,7 +696,7 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
         }
         
         duration = self.config.ventilationRules.minTime + duration;
-        self.log('Calculated duration '+duration+' minutes');
+        self.log('Calculated duration '+duration+' minutes for zone '+zoneIndex);
     }
     var offTime = now + (duration * 60);
     
@@ -707,32 +707,36 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
         // Get all window sensors
         self.processDeviceList(self.config.zones[zoneIndex].windowSensors,function(deviceObject) {
             if (deviceObject.get('metrics:level') === 'on') {
-                self.log('Zone '+zoneIndex+' already ventilated - sensor. Skipping');
                 ventilating = true;
             } else {
                 lastVentilation.push(deviceObject.get('metrics:modificationTime'));
             }
         });
         
-        if (ventilating) return;
+        if (ventilating) {
+            self.log('Zone '+zoneIndex+' is currently ventilated - sensor. Skipping');
+            return;
+        }
         
-        // Get all window sensors
+        // Get all window devices
         self.processDeviceList(self.config.zones[zoneIndex].windowDevices,function(deviceObject) {
             if (deviceObject.get('metrics:level') > 0) {
-                self.log('Zone '+zoneIndex+' already ventilated - window. Skipping');
                 ventilating = true;
             } else {
                 lastVentilation.push(deviceObject.get('metrics:modificationTime'));
             }
         });
         
-        if (ventilating) return;
+        if (ventilating) {
+            self.log('Zone '+zoneIndex+' is currently ventilated - device. Skipping');
+            return;
+        }
         
         lastVentilation.sort(function(a,b) { return b-a; });
         var lastMinutes = parseInt(((new Date()).getTime() / 1000 - lastVentilation[0]) / 60,10);
         
         if (lastMinutes < lastVentilationDiff) {
-            self.log("Last ventilation "+lastMinutes+" minutes ago. Skipping");
+            self.log("Last ventilation in zone "zoneIndex+" "+lastMinutes+" minutes ago. Skipping");
             return;
         }
     }
@@ -749,7 +753,7 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
         var deviceMode  = deviceObject.get('metrics:windowMode') || 'none';
         
         if ((deviceMode !== 'none' || deviceAuto === true) && deviceLevel > 0)  {
-            self.log('Skipping window '+deviceObject.id+' Current mode:'+ deviceMode+', Auto:'+deviceAuto);
+            self.log('Skipping window '+deviceObject.id+' in zone '+zoneIndex+' Current mode:'+ deviceMode+', Auto:'+deviceAuto);
             return;
         }
         
