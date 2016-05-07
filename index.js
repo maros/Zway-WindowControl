@@ -736,7 +736,7 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
         var lastMinutes = parseInt(((new Date()).getTime() / 1000 - lastVentilation[0]) / 60,10);
         
         if (lastMinutes < lastVentilationDiff) {
-            self.log("Last ventilation in zone "zoneIndex+" "+lastMinutes+" minutes ago. Skipping");
+            self.log("Last ventilation in zone "+zoneIndex+" "+lastMinutes+" minutes ago. Skipping");
             return;
         }
     }
