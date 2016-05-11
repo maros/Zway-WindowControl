@@ -68,15 +68,6 @@
                 },
                 "label": "__summer_rules_label__",
                 "fields" : {
-                    "thermostatDevice":{
-                        "label":"__thermostat_device_label__",
-                        "helper":"__thermostat_device_helper__",
-                        "datasource":"namespaces",
-                        "field" : "optionLabels",
-                        "optionLabels":"namespaces:devices_thermostat:deviceName",
-                        "type":"select",
-                        "order": 1
-                    },
                     "minTemperatureOutside":{
                         "label":"__min_temperature_outside_label__",
                         "helper":"__min_temperature_outside_helper__",
@@ -268,7 +259,8 @@
                             "uniqueItems":true
                         },
                         "setpointDiff": {
-                            "type": "number"
+                            "required":true,
+                            "type":"number"
                         }
                     }
                 }
@@ -318,11 +310,6 @@
             "summerRules":{
                 "type": "object",
                 "properties": {
-                    "thermostatDevice":{
-                        "datasource":"namespaces",
-                        "enum":"namespaces:devices_thermostat:deviceId",
-                        "field":"enum"
-                    },
                     "minTemperatureOutside":{
                         "type":"number",
                         "default":0,
@@ -368,6 +355,11 @@
                 "type":"number",
                 "default":30,
                 "required":true
+            },
+            "thermostatDevice":{
+                "datasource":"namespaces",
+                "enum":"namespaces:devices_thermostat:deviceId",
+                "field":"enum"
             },
             "windSensorDevice":{
                 "datasource":"namespaces",
