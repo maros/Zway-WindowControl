@@ -470,7 +470,7 @@ WindowControl.prototype.processSummer = function() {
         && typeof(conditionDevice) !== 'undefined') {
         forecastLow = forecastDevice.get('metrics:low');
         forecastHigh = forecastDevice.get('metrics:high');
-        var temperatureChange = conditionDevice.get('metrics:temperatureChange');
+        temperatureChange = conditionDevice.get('metrics:temperatureChange');
         
         // TODO incorporate forecast
     // Try to guess forecast
@@ -833,8 +833,6 @@ WindowControl.prototype.commandModeDevice = function(type,command,args) {
             }
         });
     }
-    
-    // TODO close all windows that were opened based on this controller
     
     device.set('metrics:level',command);
     device.set("metrics:icon", self.imagePath+"/icon_"+type+"_"+command+".png");
