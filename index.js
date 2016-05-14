@@ -258,7 +258,7 @@ WindowControl.prototype.processAlarm = function(event) {
     self.log('Smoke alarm');
     console.logJS(event);
     
-    // TODO
+    // TODO handle smoke alarm
     
     /*
     _.each(self.windowDevices,function(deviceId) {
@@ -324,7 +324,7 @@ WindowControl.prototype.checkConditions = function() {
         return;
     }
     
-    // Check rain
+    // Check wind
     if (self.checkWind()) {
         self.log('Closing all windows due to wind');
         self.moveDevices(self.windowDevices,0,'none');
@@ -815,6 +815,8 @@ WindowControl.prototype.commandModeDevice = function(type,command,args) {
     if (command !== 'on' && command !== 'off')
         return;
     
+    self.log('Turning '+command+' '+type+' window control');
+
     // Turn off other device
     if (command === 'on') {
         if (type === 'winter' && self.config.summerActive) {
@@ -822,6 +824,14 @@ WindowControl.prototype.commandModeDevice = function(type,command,args) {
         } else if (type === 'summer' && self.config.winterActive) {
             self.summerDevice.performCommand('off');
         }
+    } else {
+        self.processDeviceList(self.windowDevices,function(deviceObject) {
+            if (deviceObject.get('metrics:auto') === true
+                && deviceObject.get('metrics:windowMode') === type) {
+                self.log('Closing '+deviceObject.id+' after disabling '+type+' window control');
+                self.moveDevices(deviceObject,0,'none');
+            }
+        });
     }
     
     // TODO close all windows that were opened based on this controller
