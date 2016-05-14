@@ -465,19 +465,23 @@ WindowControl.prototype.processSummer = function() {
     }
     
     // Calculate window open/close thresholds
+    var temperatureChange;
     if (typeof(forecastDevice) !== 'undefined'
         && typeof(conditionDevice) !== 'undefined') {
         forecastLow = forecastDevice.get('metrics:low');
         forecastHigh = forecastDevice.get('metrics:high');
         var temperatureChange = conditionDevice.get('metrics:temperatureChange');
-        /*
-        if (temperatureChange == 'rise') {
-            
-        }
-        */
+        
+        // TODO incorporate forecast
     // Try to guess forecast
     } else {
-        // TODO now.getHour()
+        var hour = now.getHour();
+        temperatureChange = 'unchanged';
+        if (hour >= 7 && hour <= 15) {
+            temperatureChange = 'rise';
+        } else if (hour >= 19 || hour <= 5) {
+            temperatureChange = 'fall';
+        }
     }
     
     // Low temperature mode for end of summer
