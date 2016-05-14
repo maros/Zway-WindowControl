@@ -386,7 +386,7 @@ WindowControl.prototype.processWinter = function() {
     var temperatureOutside  = self.getDeviceValue(self.config.temperatureOutsideSensorDevice);
     var now                 = Math.floor(new Date().getTime() / 1000);
     var limit               = now - self.config.winterRules.maxOpenTime * 60;
-    var targetPos           = 100; // TODO sane targetPos
+    var targetPos           = self.getTargetPosition(75);
     
     _.each(self.config.zones,function(zone,index) {
         var temperatureInside = self.getTemperatureZone(zone);
@@ -444,12 +444,10 @@ WindowControl.prototype.processSummer = function() {
     var forecastLow, forecastHigh;
     var temperatureOutside  = self.getDeviceValue(self.config.temperatureOutsideSensorDevice);
     var thermostatSetpoint  = parseFloat(self.thermostatDevice.get('metrics:level'));
-    var windLevel           = self.getDeviceValue(self.config.windSensorDevice);
-    var windMax             = self.config.maxWind;
     var minTemperature      = self.config.summerRules.minTemperatureOutside;
     var conditionDevice     = self.getDevice([['probeType','=','condition']]);
     var forecastDevice      = self.getDevice([['probeType','=','forecast_range']]);
-    var windowPosition      = 100;
+    var windowPosition      = self.getTargetPosition(100);
     var operationMode       = 'default';
     var temperatureDiff     = 0;
     var temperatureOpen     = thermostatSetpoint + self.toUnit(0.25);
@@ -464,25 +462,6 @@ WindowControl.prototype.processSummer = function() {
     }
     if (typeof(presence) === 'undefined') {
         self.log('Presence device not found. Please install the Presence module to improve window operation');
-    }
-    
-    // Calculate window position based on POP
-    if (typeof(conditionDevice) !== 'undefined') {
-        var pop             = conditionDevice.get('metrics:pop');
-        var condition       = conditionDevice.get('metrics:conditiongroup');
-        if (pop > 50
-            && condition !== 'fair') {
-            windowPosition = windowPosition - pop + 30;
-        }
-    }
-    
-    // Calculate window position based on wind
-    if (windLevel >= (windMax / 2)) {
-        var maxPosition     = Math.round((windMax - windLevel) / (windMax / 2) * 100);
-        maxPosition         = Math.max(25,maxPosition);
-        maxPosition         = Math.min(100,maxPosition);
-        windowPosition      = Math.min(windowPosition,maxPosition);
-        self.log('DEBUG: Reduce window position to '+windowPosition+' due to wind');
     }
     
     // Calculate window open/close thresholds
@@ -698,20 +677,22 @@ WindowControl.prototype.processVentilate = function() {
 
 WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
     var self                = this;
-    args                    = args || {};
-    var forceVentilate      = args.force || false;
-    var duration            = args.duration;
-    var lastVentilationDiff = args.last || self.config.ventilationRules.interval;
-    lastVentilationDiff     = lastVentilationDiff * 60;
-    var windowPosition      = args.position || self.config.ventilationRules.windowPosition || 50;
-    var now                 = Math.floor(new Date().getTime() / 1000);
-    var controlDevice       = self.ventilationControlDevices[zoneIndex];
     
     // Check wind & rain
     if (self.checkRain() || self.checkWind()) {
         self.log('Ignoring ventilation due to wind/rain');
         return;
     }
+    
+    args                    = args || {};
+    var forceVentilate      = args.force || false;
+    var duration            = args.duration;
+    var lastVentilationDiff = args.last || self.config.ventilationRules.interval;
+    lastVentilationDiff     = lastVentilationDiff * 60;
+    var windowPosition      = self.getTargetPosition(args.position || self.config.ventilationRules.windowPosition || 75);
+    var now                 = Math.floor(new Date().getTime() / 1000);
+    var controlDevice       = self.ventilationControlDevices[zoneIndex];
+    
     
     // Calc duration
     if (typeof(duration) !== 'number') {
@@ -837,6 +818,42 @@ WindowControl.prototype.commandModeDevice = function(type,command,args) {
     
     device.set('metrics:level',command);
     device.set("metrics:icon", self.imagePath+"/icon_"+type+"_"+command+".png");
+};
+
+WindowControl.prototype.getTargetPosition = function(windowPosition) {
+    var conditionDevice = self.getDevice([['probeType','=','condition']]);
+    var windLevel       = self.getDeviceValue(self.config.windSensorDevice);
+    var windMax         = self.config.maxWind;
+    
+    // Calculate window position based on POP
+    if (typeof(conditionDevice) !== 'undefined') {
+        var pop             = conditionDevice.get('metrics:pop');
+        var condition       = conditionDevice.get('metrics:conditiongroup');
+        if (pop > 50
+            && condition !== 'fair') {
+            windowPosition = Math.min(windowPosition,( 100 - pop + 30 ));
+            self.log('DEBUG: Reduce window position to '+windowPosition+' due to POP');
+        }
+    }
+    
+    // Close on wind
+    if (windLevel > windMax) {
+        return 0;
+    }
+    
+    // Calculate window position based on wind
+    if (windLevel >= (windMax / 2)) {
+        var maxPosition     = Math.round((windMax - windLevel) / (windMax / 2) * 100);
+        maxPosition         = Math.max(25,maxPosition);
+        maxPosition         = Math.min(100,maxPosition);
+        windowPosition      = Math.min(windowPosition,maxPosition);
+        self.log('DEBUG: Reduce window position to '+windowPosition+' due to wind');
+    }
+    
+    // Not below 0
+    windowPosition = Math.max(windowPosition,0);
+    
+    return windowPosition;
 };
 
 WindowControl.prototype.getTemperatureZone = function(zone) {
