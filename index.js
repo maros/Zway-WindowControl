@@ -884,8 +884,25 @@ WindowControl.prototype.getTemperatureZone = function(zone) {
     }
     
     // Fallback temperature
-    // TODO fallback
-    return 20;
+    // Get locations
+    var locations = [];
+    self.processDeviceList(zone.windowDevices,function(deviceObject) {
+        locations.push( deviceObject.get('location') );
+    });
+    
+    var temperatures = [];
+    _.each(_.uniq(locations),function(location) {
+        self.processDevices([
+            ['location','=',location],
+            ['probeType','=','temperature']
+        ],function(deviceObject) {
+            // TODO weight by location
+            temperatures.push(deviceObject.get('metrics:level'));
+        });
+    });
+    
+    var sumTemperature = _.reduce(temperatures,function(memo, num){ return memo + num; }, 0);
+    return sumTemperature / temperatures.length;
 };
 
 WindowControl.prototype.moveDevices = function(devices,position,windowMode,offTime) {
