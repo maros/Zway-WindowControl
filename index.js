@@ -576,6 +576,12 @@ WindowControl.prototype.processSummer = function() {
             }
         }
         
+        // Reduce movement (open later, close later)
+        if (zoneOptimize === 'movement') {
+            zoneOpen  = zoneOpen + self.toUnit(0.5);
+            zoneClose  = zoneClose - self.toUnit(0.5);
+        }
+        
         self.log("Inside="+temperatureInside+", Outside="+temperatureOutside+", Position="+zonePosition+", Diff="+temperatureDiff+", Min="+minTemperature);
         
         // Handle zero or negative position
@@ -640,7 +646,7 @@ WindowControl.prototype.processSummer = function() {
                     && deviceMode === 'summer'
                     && deviceAuto === true
                     && deviceLevel != zonePosition
-                    && optimize === 'temperature') {
+                    && zoneOptimize === 'temperature') {
                     self.log('Move window '+deviceObject.id);
                     //deviceObject.performCommand('exact', { level: zonePosition });
                 }
