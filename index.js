@@ -839,6 +839,7 @@ WindowControl.prototype.commandModeDevice = function(type,command,args) {
 };
 
 WindowControl.prototype.getTargetPosition = function(windowPosition) {
+    var self            = this;
     var conditionDevice = self.getDevice([['probeType','=','condition']]);
     var windLevel       = self.getDeviceValue(self.config.windSensorDevice);
     var windMax         = self.config.maxWind;
