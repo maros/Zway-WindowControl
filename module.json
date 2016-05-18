@@ -5,7 +5,14 @@
         "description":"__m_descr__",
         "title":"__m_title__",
         "unitTemperature":"celsius",
-        "maxWind":30
+        "maxWind":30,
+        "ventilationRules": {},
+        "summerRules": {
+            "minTemperatureOutside": 15
+        },
+        "winterRules" : {
+            "maxOpenTime": 30
+        }
     },
     "dependencies":[
         "BaseModule",
@@ -353,7 +360,6 @@
             },
             "maxWind":{
                 "type":"number",
-                "default":30,
                 "required":true
             },
             "thermostatDevice":{
