@@ -820,9 +820,9 @@ WindowControl.prototype.commandModeDevice = function(type,command,args) {
     // Turn off other device
     if (command === 'on') {
         if (type === 'winter' && self.config.summerActive) {
-            self.summerDevice.performCommand('off');
+            self.commandModeDevice('summer','off');
         } else if (type === 'summer' && self.config.winterActive) {
-            self.summerDevice.performCommand('off');
+            self.commandModeDevice('winter','off');
         }
     } else {
         self.processDeviceList(self.windowDevices,function(deviceObject) {
