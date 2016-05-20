@@ -143,6 +143,8 @@
                         },
                         "windowSensors": {
                             "label": "__window_sensors_label__",
+                            "helper": "__window_sensors_helper__",
+                            
                             "fields":{
                                 "item": {
                                     "datasource":"namespaces",
