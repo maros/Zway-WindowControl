@@ -97,8 +97,6 @@ WindowControl.prototype.init = function (config) {
     
     // Setup ventilation scenes
     if (self.config.ventilationActive) {
-        self.controller.on(self.cronName,_.bind(self.processVentilate,self));
-        
         // Set ventilation times
         _.each(self.config.ventilationRules.time,function(time) {
             var parsedTime = self.parseTime(time);
@@ -679,6 +677,7 @@ WindowControl.prototype.processVentilate = function() {
         return;
     }
     
+    self.log('Check ventilation rules');
     // Ventilate zones
     _.each(self.config.zones,function(zoneConfig,zoneIndex) {
         self.processVentilateZone(zoneIndex);
@@ -703,7 +702,6 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
     var now                 = Math.floor(new Date().getTime() / 1000);
     var controlDevice       = self.ventilationControlDevices[zoneIndex];
     
-    
     // Calc duration
     if (typeof(duration) !== 'number') {
         var targetTemperature   = self.thermostatDevice.get('metrics:level') + parseFloat(self.config.zones[zoneIndex].setpointDiff || 0);
@@ -727,7 +725,7 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
         }
         
         duration = self.config.ventilationRules.minTime + duration;
-        self.log('Calculated duration '+duration+' minutes for zone '+zoneIndex);
+        self.log('Calculated ventilation duration '+duration+' minutes for zone '+zoneIndex);
     }
     var offTime = now + (duration * 60);
     
