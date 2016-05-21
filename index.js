@@ -730,6 +730,7 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
     }
     var offTime = now + (duration * 60);
     
+    // Check if we should ventilate at all
     if (forceVentilate === false) {
         var ventilating;
         var lastVentilation = [];
@@ -774,26 +775,32 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
     
     self.log('Ventilate zone '+zoneIndex+' for '+duration+' minutes');
     
-    controlDevice.set('metrics:offTime',offTime);
-    controlDevice.set('metrics:level','on');
-    controlDevice.set('metrics:icon',self.imagePath+"/icon_ventilate_on.png");
-    
+    var countAll    = 0;
+    var countActive = 0;
     self.processDeviceList(self.config.zones[zoneIndex].windowDevices,function(deviceObject) {
         var deviceAuto  = deviceObject.get('metrics:auto') || false;
         var deviceLevel = deviceObject.get('metrics:level') || 0;
         var deviceMode  = deviceObject.get('metrics:windowMode') || 'none';
         
+        countAll = countAll + 1;
         if ((deviceMode !== 'none' || deviceAuto === true) && deviceLevel > 0)  {
             self.log('Skipping window '+deviceObject.id+' in zone '+zoneIndex+' Current mode:'+ deviceMode+', Auto:'+deviceAuto);
             return;
         }
         
+        countActive = countActive + 1;
         self.moveDevices(deviceObject,windowPosition,'ventilate',offTime);
     });
     
-    setTimeout(_.bind(self.processStopVentilate,self,zoneIndex),(duration * 60 * 1000));
-    
-    return duration * 60;
+    if (countActive > 0) {
+        controlDevice.set('metrics:offTime',offTime);
+        controlDevice.set('metrics:level','on');
+        controlDevice.set('metrics:icon',self.imagePath+"/icon_ventilate_on.png");
+        
+        setTimeout(_.bind(self.processStopVentilate,self,zoneIndex),(duration * 60 * 1000));
+        return duration * 60;
+    }
+    return;
 };
 
 WindowControl.prototype.processStopVentilate = function(zoneIndex) {
@@ -801,7 +808,14 @@ WindowControl.prototype.processStopVentilate = function(zoneIndex) {
     self.log('Stop ventilate zone '+zoneIndex);
     var controlDevice = self.ventilationControlDevices[zoneIndex];
     
-    self.moveDevices(self.config.zones[zoneIndex].windowDevices,0,'none');
+    self.processDeviceList(self.config.zones[zoneIndex].windowDevices,function(deviceObject) {
+        if (deviceObject.get('metrics:windowMode') === 'ventilate'
+            && deviceObject.get('metrics:level') > 0
+            && deviceObject.get('metrics:auto') === true) {
+            self.moveDevices(deviceObject,0,'none');
+        }
+    });
+
     controlDevice.set('metrics:offTime',undefined);
     controlDevice.set('metrics:icon',self.imagePath+"/icon_ventilate.png");
     controlDevice.set('metrics:level',"off");
