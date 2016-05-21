@@ -449,7 +449,7 @@ WindowControl.prototype.processSummer = function() {
     var operationMode       = 'default';
     var temperatureDiff     = 0;
     var temperatureOpen     = thermostatSetpoint + self.toUnit(0.25);
-    var temperatureClose    = thermostatSetpoint - self.toUnit(0.75);
+    var temperatureClose    = thermostatSetpoint - self.toUnit(0.50);
     var now                 = new Date(Date.now());
     var presence            = self.getPresenceBoolean();
     
@@ -486,11 +486,11 @@ WindowControl.prototype.processSummer = function() {
     if (forecastLow < (minTemperature - self.toUnit(4))) {
         operationMode           = "low";
         temperatureOpen         = thermostatSetpoint + self.toUnit(1.25);
-        temperatureClose        = thermostatSetpoint + self.toUnit(0.25);
+        temperatureClose        = thermostatSetpoint + self.toUnit(0.50);
         self.log('DEBUG: Low temp mode');
     // High temperature mode for heatwaves
-    } else if (forecastHigh > (thermostatSetpoint + self.toUnit(3))
-        &&  forecastLow > (thermostatSetpoint - self.toUnit(8))) {
+    } else if (forecastHigh > (thermostatSetpoint + self.toUnit(4))
+        && forecastLow > (thermostatSetpoint - self.toUnit(8))) {
         operationMode           = "high";
         var temperatureDelta    = forecastHigh - thermostatSetpoint;
         temperatureOpen         = temperatureOpen - (temperatureDelta/3);
@@ -561,7 +561,7 @@ WindowControl.prototype.processSummer = function() {
         var zoneSetpoint                = thermostatSetpoint + setpointDiff;
         var zoneOpen                    = temperatureOpen + setpointDiff;
         var zoneClose                   = temperatureClose + setpointDiff;
-        var temperatureInsideCompare    = temperatureInside + temperatureDiff + self.toUnit(0.5);
+        var temperatureInsideCompare    = temperatureInside + temperatureDiff;
         
         // Corridor
         if (temperatureOutside < zoneSetpoint
@@ -594,7 +594,7 @@ WindowControl.prototype.processSummer = function() {
             zoneAction = "close";
         // Warmer inside -> open
         } else if (temperatureInside >= zoneOpen
-            && temperatureInsideCompare >= temperatureOutside
+            && (temperatureInsideCompare+self.toUnit(0.25)) >= temperatureOutside
             && temperatureOutside >= (minTemperature+self.toUnit(0.5))) {
             self.log("Opening all windows in zone "+index+" to "+zonePosition+"% (inside comp temperature "+temperatureInsideCompare+" above opening temperature "+zoneOpen+")");
             zoneAction = "open";
@@ -632,26 +632,26 @@ WindowControl.prototype.processSummer = function() {
                 if (zoneAction === 'close'
                     && deviceAuto === true
                     && deviceMode === 'summer') {
-                    self.log('Closing window '+deviceObject.id);
-                    //deviceObject.performCommand('off');
-                    //deviceObject.set('metrics:windowMode','none');
-                    //deviceObject.set('metrics:auto',false);
+                    self.log("Zone "+index+". Closing window "+deviceObject.id);
+                    deviceObject.performCommand('off');
+                    deviceObject.set('metrics:windowMode','none');
+                    deviceObject.set('metrics:auto',false);
                 // Open action
                 } else if (zoneAction === 'open'
                     && deviceAuto === false
                     && deviceMode === 'none') {
-                    self.log('Opening window '+deviceObject.id);
-                    //deviceObject.performCommand('exact', { level: zonePosition });
-                    //deviceObject.set('metrics:windowMode','summer');
-                    //deviceObject.set('metrics:auto',true );
+                    self.log("Zone "+index+". Opening window "+deviceObject.id);
+                    deviceObject.performCommand('exact', { level: zonePosition });
+                    deviceObject.set('metrics:windowMode','summer');
+                    deviceObject.set('metrics:auto',true );
                 // Modify action
                 } else if ((zoneAction === 'open' || zoneAction === 'keep')
                     && deviceMode === 'summer'
                     && deviceAuto === true
                     && deviceLevel != zonePosition
                     && zoneOptimize === 'temperature') {
-                    self.log('Move window '+deviceObject.id);
-                    //deviceObject.performCommand('exact', { level: zonePosition });
+                    self.log("Zone "+index+". Move window "+deviceObject.id);
+                    deviceObject.performCommand('exact', { level: zonePosition });
                 }
             });
         }
