@@ -451,7 +451,7 @@ WindowControl.prototype.processSummer = function() {
     var temperatureOpen     = thermostatSetpoint + self.toUnit(0.25);
     var temperatureClose    = thermostatSetpoint - self.toUnit(0.75);
     var now                 = new Date(Date.now());
-    var presence            = self.getDeviceValue([['probeType','=','presence']]);
+    var presence            = self.getPresenceBoolean();
     
     // Warn about missing devices
     if (typeof(conditionDevice) === 'undefined' 
@@ -523,22 +523,23 @@ WindowControl.prototype.processSummer = function() {
         }
     }
     
-    if (typeof(presence) === 'undefined') {
+    // Based on presence
+    if (typeof(presence) !== 'undefined') {
         // Home and cool
-        if (presence === 'on'
+        if (presence === true
             && temperatureOutside < thermostatSetpoint) {
             minTemperature      = minTemperature + self.toUnit(1);
             temperatureDiff     = temperatureDiff - self.toUnit(1);
             self.log('DEBUG: Home and cool mode');
         // Away and hot
-        } else if (presence === 'off'
+        } else if (presence === false
             && operationMode === 'high') {
             temperatureOpen     = temperatureOpen - self.toUnit(0.5);
             temperatureClose    = temperatureClose - self.toUnit(0.5);
             temperatureDiff     = temperatureDiff + self.toUnit(0.5);
             self.log('DEBUG: Away and hot mode');
         // Home and heatwave
-        } else if (presence === 'on'
+        } else if (presence === true
             && operationMode == "high"
             && forecastHigh > (thermostatSetpoint + self.toUnit(6))) {
             minTemperature      = minTemperature - self.toUnit(1);
