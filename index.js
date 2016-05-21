@@ -549,7 +549,7 @@ WindowControl.prototype.processSummer = function() {
     }
     
     // Mode
-    self.log(operationMode+' temperature windows mode (Open>='+temperatureOpen+', Close<'+temperatureClose+')');
+    self.log(operationMode+' temperature windows mode (Open>='+temperatureOpen+', Close<'+temperatureClose+', Diff='+temperatureDiff+')');
     
     // Process zones
     _.each(self.config.zones,function(zone,index) {
@@ -570,12 +570,12 @@ WindowControl.prototype.processSummer = function() {
             && temperatureOutside > minTemperature) {
             
             var corridor = Math.round((temperatureOutside - minTemperature) / (zoneSetpoint - minTemperature) * 100);
-            self.log('DEBUG Corridor'+corridor+' - setpoint '+zoneSetpoint);
+            self.log("Zone "+index+". DEBUG Corridor"+corridor+" - setpoint "+zoneSetpoint);
             corridor = Math.min(corridor,80);
             corridor = Math.max(corridor,20);
             zonePosition = Math.min(zonePosition,corridor);
             if (windowPosition !== zonePosition) {
-                self.log("Position reduced to "+zonePosition+"% from "+windowPosition+"%");
+                self.log("Zone "+index+". Position reduced to "+zonePosition+"% from "+windowPosition+"%");
             }
         }
         
@@ -585,35 +585,35 @@ WindowControl.prototype.processSummer = function() {
             zoneClose  = zoneClose - self.toUnit(0.5);
         }
         
-        self.log("Inside="+temperatureInside+", Outside="+temperatureOutside+", Position="+zonePosition+", Diff="+temperatureDiff+", Min="+minTemperature);
+        self.log("Zone "+index+". Inside="+temperatureInside+", Outside="+temperatureOutside+", Position="+zonePosition+", Diff="+temperatureDiff+", Min="+minTemperature);
         
         // Handle zero or negative position
         if (zonePosition <= 0) {
             zonePosition = 0;
-            self.log("Closing all windows in zone "+index+" (temperature corridor + pop)");
+            self.log("Zone "+inex+". Closing all windows (temperature corridor + pop)");
             zoneAction = "close";
         // Warmer inside -> open
         } else if (temperatureInside >= zoneOpen
             && (temperatureInsideCompare+self.toUnit(0.25)) >= temperatureOutside
             && temperatureOutside >= (minTemperature+self.toUnit(0.5))) {
-            self.log("Opening all windows in zone "+index+" to "+zonePosition+"% (inside comp temperature "+temperatureInsideCompare+" above opening temperature "+zoneOpen+")");
+            self.log("Zone "+index+". Opening all windows to "+zonePosition+"% (inside comp temperature "+temperatureInsideCompare+" above opening temperature "+zoneOpen+")");
             zoneAction = "open";
         // Cool inside -> close
         } else if (temperatureInside <= zoneClose) {
-            self.log("Closing all windows in zone "+index+" (inside temperature "+temperatureInside+" below "+zoneClose+")");
+            self.log("Zone "+index+". Closing all windows (inside temperature "+temperatureInside+" below "+zoneClose+")");
             zoneAction = "close";
         // Warmer outside -> close
-        } else if (temperatureInsideCompare <= temperatureOutside) {
-            self.log("Closing all windows in zone "+index+" (inside cpmp temperature "+temperatureInsideCompare+" below outside temperature "+temperatureOutside+")");
+        } else if ((temperatureInsideCompare+self.toUnit(0.75)) <= temperatureOutside) {
+            self.log("Zone "+index+". Closing all windows (inside cmp temperature "+temperatureInsideCompare+" below outside temperature "+temperatureOutside+")");
             zoneAction = "close";
         // Too cold outside -> close
         } else if (temperatureOutside <= minTemperature) {
-            self.log("Closing all windows in zone "+index+" (outside temperature "+temperatureOutside+" below min temperature "+minTemperature+")");
+            self.log("Zone "+index+". Closing all windows (outside temperature "+temperatureOutside+" below min temperature "+minTemperature+")");
             zoneAction = "close";
         }
         
         if (zoneAction == "keep") {
-            self.log("Not changing window status");
+            self.log("Zone "+index+". Not changing window status");
         } else {                
             zonePosition = Math.max(zonePosition,20);
             _.each(zone.windowDevices,function(deviceId) {
