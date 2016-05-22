@@ -240,7 +240,11 @@ WindowControl.prototype.initCallback = function() {
     if (typeof(self.config.rainSensorDevice) !== 'undefined') {
         self.rainSensorDevice = self.getDevice(self.config.rainSensorDevice);
         if (typeof(self.rainSensorDevice) !== 'undefined') {
-            self.rainSensorDevice.on('change:metrics:level',self.rainCallback);
+            self.rainSensorDevice.on('change:metrics:level',function(vDev) {
+                if (vDev.get('metrics:level') === 'on') {
+                    self.rainCallback();
+                }
+            });
         }
     }
 };
