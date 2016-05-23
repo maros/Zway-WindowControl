@@ -224,8 +224,8 @@ WindowControl.prototype.initCallback = function() {
     
     // Get all devices
     var devices = [];
-    _.each(self.config.rules,function(rule) {
-        devices.push(rule.devices);
+    _.each(self.config.zones,function(zone,zoneIndex) {
+        devices.push(zone.windowDevices);
     });
     self.windowDevices = _.uniq(_.flatten(devices));
     
@@ -362,7 +362,7 @@ WindowControl.prototype.checkDevices = function() {
     });
     
     // Check off time & mode
-    _.each(self.windowDevices,function(deviceObject) {
+    self.processDeviceList(self.windowDevices,function(deviceObject) {
         var offTime     = deviceObject.get('metrics:offTime');
         var level       = deviceObject.get('metrics:level');
         var auto        = deviceObject.get('metrics:auto');
