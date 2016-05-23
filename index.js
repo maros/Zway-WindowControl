@@ -653,7 +653,7 @@ WindowControl.prototype.processSummer = function() {
                     && deviceMode === 'summer'
                     && deviceAuto === true
                     && deviceLevel != zonePosition
-                    && zoneOptimize === 'temperature') {
+                    && (zoneOptimize === 'temperature' || Math.abs(deviceLevel-zonePosition) >= 50)) {
                     self.log("Zone "+index+". Move window "+deviceObject.id);
                     deviceObject.performCommand('exact', { level: zonePosition });
                 }
