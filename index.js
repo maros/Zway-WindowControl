@@ -241,7 +241,7 @@ WindowControl.prototype.initCallback = function() {
         self.rainSensorDevice = self.getDevice(self.config.rainSensorDevice);
         if (typeof(self.rainSensorDevice) !== 'undefined') {
             self.rainSensorDevice.on('change:metrics:level',function(vDev) {
-                if (vDev.get('metrics:level') === 'on') {
+                if (self.rainSensorDevice.get('metrics:level') === 'on') {
                     self.rainCallback();
                 }
             });
@@ -258,7 +258,6 @@ WindowControl.prototype.processAlarm = function(event) {
     
     var presence = self.getPresenceBoolean();
     self.log('Smoke alarm');
-    console.logJS(event);
     
     // TODO handle smoke alarm
     
