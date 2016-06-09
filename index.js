@@ -739,7 +739,7 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
         var lastVentilation = [];
         
         // Get all window sensors
-        self.processDeviceList(self.config.zones[zoneIndex].windowSensors,function(deviceObject) {
+        self.processDeviceList(self.config.zones[zoneIndex].windowSensorDevices,function(deviceObject) {
             if (deviceObject.get('metrics:level') === 'on') {
                 ventilating = true;
             } else {

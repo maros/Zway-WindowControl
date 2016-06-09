@@ -141,7 +141,7 @@
                                 }
                             }
                         },
-                        "windowSensors": {
+                        "windowSensorDevices": {
                             "label": "__window_sensors_label__",
                             "helper": "__window_sensors_helper__",
                             
@@ -257,7 +257,7 @@
                             "minItems":1,
                             "uniqueItems":true
                         },
-                        "windowSensors": {
+                        "windowSensorDevices": {
                             "type":"array",
                             "items":{
                                 "datasource":"namespaces",
