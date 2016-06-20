@@ -18,7 +18,7 @@
       "BaseModule",
       "Cron"
    ],
-   "homepage" : "http://k-1.com",
+   "homepage" : "https://github.com/maros/Zway-WindowControl/",
    "icon" : "icon.png",
    "maturity" : "stable",
    "moduleName" : "WindowControl",
