@@ -1,7 +1,7 @@
 {
    "interval_helper" : "Ventilate if last ventilation in zone (either automatic or manual and detected through window sensors) is longer than n-minutes ago",
    "interval_label" : "Ventilation interval",
-   "m_descr" : "Control window drives for optimal temperature regulation in summer and winter, ventilation and security.<br>Check http:/k-1.com/blob/master/README.md for detailed documentation.",
+   "m_descr" : "Control window drives for optimal temperature regulation in summer and winter, ventilation and security.<br>Check <a href=https://github.com/maros/Zway-WindowControl/blob/master/README.md>github.com/maros/Zway-WindowControl</a> for detailed documentation.",
    "m_title" : "Window Control",
    "max_open_time_label" : "Max window open time",
    "max_time_label" : "Max ventilation time",
@@ -26,7 +26,6 @@
    "temperature_inside_sensor_device_label" : "Inside temperature sensor",
    "temperature_outside_sensor_device_helper" : "A temperature weather data widget (eg. WeatherUnderground or ForecastIO) may be used instead of a physical device",
    "temperature_outside_sensor_device_label" : "Outdoor temperature sensor",
-   "temperature_sensor_label" : "Indoor temperature sensor",
    "thermostat_device_helper" : "A thermostat module to set the desired target temperature. If none is selected, this module will create a virtual thermostat",
    "thermostat_device_label" : "Thermostat",
    "time2_helper" : "In minutes",
