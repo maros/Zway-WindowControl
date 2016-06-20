@@ -1,390 +1,389 @@
 {
-    "author":"Maroš Kollár",
-    "category":"complex_applications",
-    "defaults":{
-        "description":"__m_descr__",
-        "title":"__m_title__",
-        "unitTemperature":"celsius",
-        "maxWind":30,
-        "ventilationRules": {},
-        "summerRules": {
-            "minTemperatureOutside": 15
-        },
-        "winterRules" : {
-            "maxOpenTime": 30
-        }
-    },
-    "dependencies":[
-        "BaseModule",
-        "Cron"
-    ],
-    "homepage":"http://k-1.com",
-    "icon":"icon.png",
-    "maturity":"stable",
-    "moduleName":"WindowControl",
-    "options":{
-        "fields":{
-            "ventilationRules": {
-                "dependencies" : {
-                    "ventilationActive": true
-                },
-                "label": "__ventilation_rules_label__",
-                "order": 3,
-                "fields" : {
-                    "windowPosition": {
-                        "label" : "__window_position_label__",
-                        "order": 5
-                    },
-                    "minTemperatureOutside":{
-                        "label" : "__min_temperature_outside_label__",
-                        "helper" : "__min_temperature_outside_helper__",
-                        "order": 1
-                    },
-                    "minTime":{
-                        "label" : "__min_time_label__",
-                        "helper": "__time2_helper__",
-                        "order": 2
-                    },
-                    "maxTime":{
-                        "label" : "__max_time_label__",
-                        "helper": "__time2_helper__",
-                        "order": 3
-                    },
-                    "interval":{
-                        "label" : "__interval_label__",
-                        "helper" : "__interval_helper__",
-                        "order": 4
-                    },
-                    "time" : {
-                        "order": 6,
-                        "label" : "__time_label__",
-                        "helper" : "__time_helper__",
-                        "items":{
-                            "placeholder" : "__time_placeholder__",
-                            "type": "time",
-                            "dateFormat": "HH:mm",
-                            "maskString": "99:99"
-                        }
-                    }
-                }
-            },
-            "summerRules": {
-                "order": 5,
-                "dependencies" :  {
-                    "summerActive": true
-                },
-                "label": "__summer_rules_label__",
-                "fields" : {
-                    "minTemperatureOutside":{
-                        "label":"__min_temperature_outside_label__",
-                        "helper":"__min_temperature_outside_helper__",
-                        "order": 3
-                    }
-                }
-            },
-            "winterRules": {
-                "order": 7,
-                "dependencies" :  {
-                    "winterActive": true
-                },
-                "label": "__winter_rules_label__",
-                "fields" : {
-                    "maxOpenTime": {
-                        "label": "__max_open_time_label__",
-                        "helper": "__time2_helper__"
-                    }
-                }
-            },
-            "winterActive" : {
-                "label": "__winter_active_label__",
-                "helper": "__winter_active_helper__",
-                "order": 6
-            },
-            "summerActive" : {
-                "label": "__summer_active_label__",
-                "helper": "__summer_active_helper__",
-                "order": 4
-            },
-            "ventilationActive" : {
-                "label": "__ventilation_active_label__",
-                "helper": "__ventilation_active_helper__",
-                "order": 2
-            },
-            "zones":{
-                "order": 1,
-                "label": "__zones_label__",
-                "items":{
-                    "fields":{
-                        "optimize": {
-                            "label": "__optimize_label__",
-                            "helper":"__optimize_helper__",
-                            "optionLabels" : [
-                                "__optimize_movement__",
-                                "__optimize_temperature__"
-                             ]
-                        },
-                        "temperatureSensorDevice":{
-                            "label":"__temperature_inside_sensor_device_label__",
-                            "datasource":"namespaces",
-                            "field" : "optionLabels",
-                            "optionLabels":"namespaces:devices_sensorMultilevel:deviceName",
-                            "type":"select"
-                        },
-                        "windowDevices":{
-                            "label":"__window_devices_label__",
-                            "fields":{
-                                "item":{
-                                    "datasource":"namespaces",
-                                    "field" : "optionLabels",
-                                    "optionLabels":"namespaces:devices_switchMultilevel:deviceName",
-                                    "type":"select"
-                                }
-                            }
-                        },
-                        "windowSensorDevices": {
-                            "label": "__window_sensors_label__",
-                            "helper": "__window_sensors_helper__",
-                            
-                            "fields":{
-                                "item": {
-                                    "datasource":"namespaces",
-                                    "field" : "optionLabels",
-                                    "optionLabels":"namespaces:devices_sensorBinary:deviceName",
-                                    "type":"select"
-                                }
-                            }
-                        },
-                        "setpointDiff": {
-                            "label": "__setpoint_diff_label__",
-                            "helper": "__setpoint_diff_helper__"
-                        }
-                    }
-                }
-            },
-            "unitTemperature" : {
-                "order": 8,
-                "label" : "__unit_temperature__",
-                "optionLabels" : [
-                   "°C",
-                   "°F"
-                ]
-            },
-            "maxWind":{
-                "label": "__max_wind_label__",
-                "helper": "__max_wind_helper__",
-                "order": 9
-            },
-            "thermostatDevice":{
-                "label":"__thermostat_device_label__",
-                "helper":"__thermostat_device_helper__",
-                "datasource":"namespaces",
-                "field" : "optionLabels",
-                "optionLabels":"namespaces:devices_thermostat:deviceName",
-                "type":"select",
-                "order": 11
-            },
-            "rainSensorDevice":{
-                "label":"__rain_sensor_device_label__",
-                "helper":"__rain_sensor_device_helper__",
-                "datasource":"namespaces",
-                "field" : "optionLabels",
-                "optionLabels":"namespaces:devices_sensorBinary:deviceName",
-                "type":"select",
-                "order": 12
-            },
-            "windSensorDevice":{
-                "label":"__wind_sensor_device_label__",
-                "helper":"__wind_sensor_device_helper__",
-                "datasource":"namespaces",
-                "field" : "optionLabels",
-                "optionLabels":"namespaces:devices_sensorMultilevel:deviceName",
-                "type":"select",
-                "order": 10
-            },
-            "temperatureOutsideSensorDevice":{
-                "label":"__temperature_outside_sensor_device_label__",
-                "helper":"__temperature_outside_sensor_device_helper__",
-                "datasource":"namespaces",
-                "field" : "optionLabels",
-                "optionLabels":"namespaces:devices_sensorMultilevel:deviceName",
-                "type":"select",
-                "order": 13
-            }
-        }
-    },
-    "repository":{
-        "source":"https://github.com/maros/Zway-WindowControl",
-        "type":"git"
-    },
-    "schema":{
-        "dependencies" : {
-         "ventilationRules" : "ventilationActive",
-         "winterRules" : "winterActive",
-         "summerRules" : "summerActive"
+   "author" : "Maroš Kollár",
+   "category" : "complex_applications",
+   "defaults" : {
+      "description" : "__m_descr__",
+      "maxWind" : 30,
+      "summerRules" : {
+         "minTemperatureOutside" : 15
       },
-        "properties":{
-            "zones": {
-                "type" : "array",
-                "minItem":1,
-                "items":{
-                    "defaults": {
-                        "setpointDiff": 0
-                    },
-                    "type":"object",
-                    "properties":{
-                        "optimize": {
-                            "required": true,
-                            "enum":[
-                                "movement",
-                                "temperature"
-                             ],
-                             "default": "temperature"
-                        },
-                        "temperatureSensorDevice":{
-                            "datasource":"namespaces",
-                            "enum":"namespaces:devices_sensorMultilevel:deviceId",
-                            "field":"enum",
-                            "required":true
-                        },
-                        "windowDevices":{
-                            "type":"array",
-                            "items":{
-                                "datasource":"namespaces",
-                                "enum":"namespaces:devices_switchMultilevel:deviceId",
-                                "field":"enum",
-                                "required":true
-                            },
-                            "minItems":1,
-                            "uniqueItems":true
-                        },
-                        "windowSensorDevices": {
-                            "type":"array",
-                            "items":{
-                                "datasource":"namespaces",
-                                "enum":"namespaces:devices_sensorBinary:deviceId",
-                                "field":"enum",
-                                "required":true
-                            },
-                            "uniqueItems":true
-                        },
-                        "setpointDiff": {
-                            "required":true,
-                            "type":"number"
+      "title" : "__m_title__",
+      "unitTemperature" : "celsius",
+      "ventilationRules" : {},
+      "winterRules" : {
+         "maxOpenTime" : 30
+      }
+   },
+   "dependencies" : [
+      "BaseModule",
+      "Cron"
+   ],
+   "homepage" : "http://k-1.com",
+   "icon" : "icon.png",
+   "maturity" : "stable",
+   "moduleName" : "WindowControl",
+   "options" : {
+      "fields" : {
+         "maxWind" : {
+            "helper" : "__max_wind_helper__",
+            "label" : "__max_wind_label__",
+            "order" : 9
+         },
+         "rainSensorDevice" : {
+            "datasource" : "namespaces",
+            "field" : "optionLabels",
+            "helper" : "__rain_sensor_device_helper__",
+            "label" : "__rain_sensor_device_label__",
+            "optionLabels" : "namespaces:devices_sensorBinary:deviceName",
+            "order" : 12,
+            "type" : "select"
+         },
+         "summerActive" : {
+            "helper" : "__summer_active_helper__",
+            "label" : "__summer_active_label__",
+            "order" : 4
+         },
+         "summerRules" : {
+            "dependencies" : {
+               "summerActive" : true
+            },
+            "fields" : {
+               "minTemperatureOutside" : {
+                  "helper" : "__min_temperature_outside_helper__",
+                  "label" : "__min_temperature_outside_label__",
+                  "order" : 3
+               }
+            },
+            "label" : "__summer_rules_label__",
+            "order" : 5
+         },
+         "temperatureOutsideSensorDevice" : {
+            "datasource" : "namespaces",
+            "field" : "optionLabels",
+            "helper" : "__temperature_outside_sensor_device_helper__",
+            "label" : "__temperature_outside_sensor_device_label__",
+            "optionLabels" : "namespaces:devices_sensorMultilevel:deviceName",
+            "order" : 13,
+            "type" : "select"
+         },
+         "thermostatDevice" : {
+            "datasource" : "namespaces",
+            "field" : "optionLabels",
+            "helper" : "__thermostat_device_helper__",
+            "label" : "__thermostat_device_label__",
+            "optionLabels" : "namespaces:devices_thermostat:deviceName",
+            "order" : 11,
+            "type" : "select"
+         },
+         "unitTemperature" : {
+            "label" : "__unit_temperature__",
+            "optionLabels" : [
+               "°C",
+               "°F"
+            ],
+            "order" : 8
+         },
+         "ventilationActive" : {
+            "helper" : "__ventilation_active_helper__",
+            "label" : "__ventilation_active_label__",
+            "order" : 2
+         },
+         "ventilationRules" : {
+            "dependencies" : {
+               "ventilationActive" : true
+            },
+            "fields" : {
+               "interval" : {
+                  "helper" : "__interval_helper__",
+                  "label" : "__interval_label__",
+                  "order" : 4
+               },
+               "maxTime" : {
+                  "helper" : "__time2_helper__",
+                  "label" : "__max_time_label__",
+                  "order" : 3
+               },
+               "minTemperatureOutside" : {
+                  "helper" : "__min_temperature_outside_helper__",
+                  "label" : "__min_temperature_outside_label__",
+                  "order" : 1
+               },
+               "minTime" : {
+                  "helper" : "__time2_helper__",
+                  "label" : "__min_time_label__",
+                  "order" : 2
+               },
+               "time" : {
+                  "helper" : "__time_helper__",
+                  "items" : {
+                     "dateFormat" : "HH:mm",
+                     "maskString" : "99:99",
+                     "placeholder" : "__time_placeholder__",
+                     "type" : "time"
+                  },
+                  "label" : "__time_label__",
+                  "order" : 6
+               },
+               "windowPosition" : {
+                  "label" : "__window_position_label__",
+                  "order" : 5
+               }
+            },
+            "label" : "__ventilation_rules_label__",
+            "order" : 3
+         },
+         "windSensorDevice" : {
+            "datasource" : "namespaces",
+            "field" : "optionLabels",
+            "helper" : "__wind_sensor_device_helper__",
+            "label" : "__wind_sensor_device_label__",
+            "optionLabels" : "namespaces:devices_sensorMultilevel:deviceName",
+            "order" : 10,
+            "type" : "select"
+         },
+         "winterActive" : {
+            "helper" : "__winter_active_helper__",
+            "label" : "__winter_active_label__",
+            "order" : 6
+         },
+         "winterRules" : {
+            "dependencies" : {
+               "winterActive" : true
+            },
+            "fields" : {
+               "maxOpenTime" : {
+                  "helper" : "__time2_helper__",
+                  "label" : "__max_open_time_label__"
+               }
+            },
+            "label" : "__winter_rules_label__",
+            "order" : 7
+         },
+         "zones" : {
+            "items" : {
+               "fields" : {
+                  "optimize" : {
+                     "helper" : "__optimize_helper__",
+                     "label" : "__optimize_label__",
+                     "optionLabels" : [
+                        "__optimize_movement__",
+                        "__optimize_temperature__"
+                     ]
+                  },
+                  "setpointDiff" : {
+                     "helper" : "__setpoint_diff_helper__",
+                     "label" : "__setpoint_diff_label__"
+                  },
+                  "temperatureSensorDevice" : {
+                     "datasource" : "namespaces",
+                     "field" : "optionLabels",
+                     "label" : "__temperature_inside_sensor_device_label__",
+                     "optionLabels" : "namespaces:devices_sensorMultilevel:deviceName",
+                     "type" : "select"
+                  },
+                  "windowDevices" : {
+                     "fields" : {
+                        "item" : {
+                           "datasource" : "namespaces",
+                           "field" : "optionLabels",
+                           "optionLabels" : "namespaces:devices_switchMultilevel:deviceName",
+                           "type" : "select"
                         }
-                    }
-                }
-            },
-            "ventilationRules":{
-                "type": "object",
-                "properties": {
-                    "windowPosition": {
-                        "type":"number",
-                        "default":100,
-                        "required":true,
-                        "minimum": 10,
-                        "maximum": 100
-                    },
-                    "minTemperatureOutside":{
-                        "type":"number",
-                        "default":0,
-                        "required":true
-                    },
-                    "minTime":{
-                        "minimum": 1,
-                        "type":"number",
-                        "default":4,
-                        "required":true
-                    },
-                    "maxTime":{
-                        "type":"number",
-                        "minimum": 1,
-                        "default":30,
-                        "required":true
-                    },
-                    "interval":{
-                        "type":"number",
-                        "minimum": 1,
-                        "default":24,
-                        "required":true
-                    },
-                    "time" : {
-                        "type":"array",
-                        "items":{
-                            "format":"time",
-                            "type" : "string"
+                     },
+                     "label" : "__window_devices_label__"
+                  },
+                  "windowSensorDevices" : {
+                     "fields" : {
+                        "item" : {
+                           "datasource" : "namespaces",
+                           "field" : "optionLabels",
+                           "optionLabels" : "namespaces:devices_sensorBinary:deviceName",
+                           "type" : "select"
                         }
-                    }
-                }
+                     },
+                     "helper" : "__window_sensors_helper__",
+                     "label" : "__window_sensors_label__"
+                  }
+               }
             },
-            "summerRules":{
-                "type": "object",
-                "properties": {
-                    "minTemperatureOutside":{
-                        "type":"number",
-                        "default":0,
-                        "required":true
-                    }
-                }
+            "label" : "__zones_label__",
+            "order" : 1
+         }
+      }
+   },
+   "repository" : {
+      "source" : "https://github.com/maros/Zway-WindowControl",
+      "type" : "git"
+   },
+   "schema" : {
+      "dependencies" : {
+         "summerRules" : "summerActive",
+         "ventilationRules" : "ventilationActive",
+         "winterRules" : "winterActive"
+      },
+      "properties" : {
+         "maxWind" : {
+            "required" : true,
+            "type" : "number"
+         },
+         "rainSensorDevice" : {
+            "datasource" : "namespaces",
+            "enum" : "namespaces:devices_sensorBinary:deviceId",
+            "field" : "enum",
+            "required" : true
+         },
+         "summerActive" : {
+            "default" : false,
+            "type" : "boolean"
+         },
+         "summerRules" : {
+            "properties" : {
+               "minTemperatureOutside" : {
+                  "default" : 0,
+                  "required" : true,
+                  "type" : "number"
+               }
             },
-            "winterRules":{
-                "type": "object",
-                "properties": {
-                    "maxOpenTime": {
-                        "default": 60,
-                        "type": "number"
-                    }
-                }
+            "type" : "object"
+         },
+         "temperatureOutsideSensorDevice" : {
+            "datasource" : "namespaces",
+            "enum" : "namespaces:devices_sensorMultilevel:deviceId",
+            "field" : "enum",
+            "required" : true
+         },
+         "thermostatDevice" : {
+            "datasource" : "namespaces",
+            "enum" : "namespaces:devices_thermostat:deviceId",
+            "field" : "enum"
+         },
+         "unitTemperature" : {
+            "enum" : [
+               "celsius",
+               "fahrenheit"
+            ],
+            "required" : true
+         },
+         "ventilationActive" : {
+            "default" : false,
+            "type" : "boolean"
+         },
+         "ventilationRules" : {
+            "properties" : {
+               "interval" : {
+                  "default" : 24,
+                  "minimum" : 1,
+                  "required" : true,
+                  "type" : "number"
+               },
+               "maxTime" : {
+                  "default" : 30,
+                  "minimum" : 1,
+                  "required" : true,
+                  "type" : "number"
+               },
+               "minTemperatureOutside" : {
+                  "default" : 0,
+                  "required" : true,
+                  "type" : "number"
+               },
+               "minTime" : {
+                  "default" : 4,
+                  "minimum" : 1,
+                  "required" : true,
+                  "type" : "number"
+               },
+               "time" : {
+                  "items" : {
+                     "format" : "time",
+                     "type" : "string"
+                  },
+                  "type" : "array"
+               },
+               "windowPosition" : {
+                  "default" : 100,
+                  "maximum" : 100,
+                  "minimum" : 10,
+                  "required" : true,
+                  "type" : "number"
+               }
             },
-            "winterActive" : {
-                "default" : false,
-                "type" : "boolean"
+            "type" : "object"
+         },
+         "windSensorDevice" : {
+            "datasource" : "namespaces",
+            "enum" : "namespaces:devices_sensorMultilevel:deviceId",
+            "field" : "enum",
+            "required" : true
+         },
+         "winterActive" : {
+            "default" : false,
+            "type" : "boolean"
+         },
+         "winterRules" : {
+            "properties" : {
+               "maxOpenTime" : {
+                  "default" : 60,
+                  "type" : "number"
+               }
             },
-            "summerActive" : {
-                "default" : false,
-                "type" : "boolean"
+            "type" : "object"
+         },
+         "zones" : {
+            "items" : {
+               "defaults" : {
+                  "setpointDiff" : 0
+               },
+               "properties" : {
+                  "optimize" : {
+                     "default" : "temperature",
+                     "enum" : [
+                        "movement",
+                        "temperature"
+                     ],
+                     "required" : true
+                  },
+                  "setpointDiff" : {
+                     "required" : true,
+                     "type" : "number"
+                  },
+                  "temperatureSensorDevice" : {
+                     "datasource" : "namespaces",
+                     "enum" : "namespaces:devices_sensorMultilevel:deviceId",
+                     "field" : "enum",
+                     "required" : true
+                  },
+                  "windowDevices" : {
+                     "items" : {
+                        "datasource" : "namespaces",
+                        "enum" : "namespaces:devices_switchMultilevel:deviceId",
+                        "field" : "enum",
+                        "required" : true
+                     },
+                     "minItems" : 1,
+                     "type" : "array",
+                     "uniqueItems" : true
+                  },
+                  "windowSensorDevices" : {
+                     "items" : {
+                        "datasource" : "namespaces",
+                        "enum" : "namespaces:devices_sensorBinary:deviceId",
+                        "field" : "enum",
+                        "required" : true
+                     },
+                     "type" : "array",
+                     "uniqueItems" : true
+                  }
+               },
+               "type" : "object"
             },
-            "ventilationActive" : {
-                "default" : false,
-                "type" : "boolean"
-            },
-            "unitTemperature" : {
-                "enum" : [
-                   "celsius",
-                   "fahrenheit"
-                ],
-                "required" : true
-            },
-            "rainSensorDevice":{
-                "datasource":"namespaces",
-                "enum":"namespaces:devices_sensorBinary:deviceId",
-                "field":"enum",
-                "required":true
-            },
-            "maxWind":{
-                "type":"number",
-                "required":true
-            },
-            "thermostatDevice":{
-                "datasource":"namespaces",
-                "enum":"namespaces:devices_thermostat:deviceId",
-                "field":"enum"
-            },
-            "windSensorDevice":{
-                "datasource":"namespaces",
-                "enum":"namespaces:devices_sensorMultilevel:deviceId",
-                "field":"enum",
-                "required":true
-            },
-            "temperatureOutsideSensorDevice":{
-                "datasource":"namespaces",
-                "enum":"namespaces:devices_sensorMultilevel:deviceId",
-                "field":"enum",
-                "required":true
-            }
-        },
-        "required":true,
-        "type":"object"
-    },
-    "singleton":false,
-    "version":"1.00"
+            "minItem" : 1,
+            "type" : "array"
+         }
+      },
+      "required" : true,
+      "type" : "object"
+   },
+   "singleton" : false,
+   "version" : "1.00"
 }
