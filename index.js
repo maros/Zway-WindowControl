@@ -694,7 +694,7 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
     // Check wind & rain
     if (self.checkRain() || self.checkWind()) {
         self.log('Ignoring ventilation due to wind/rain');
-        return;
+        return 0;
     }
     
     args                    = args || {};
@@ -716,7 +716,7 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
         
         if (temperatureOutside < temperatureMin) {
             if (! forceVentilate) {
-                return;
+                return 0;
             }
             duration = 0;
         } else {
@@ -749,7 +749,7 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
         
         if (ventilating) {
             self.log('Zone '+zoneIndex+' is currently ventilated - sensor. Skipping');
-            return;
+            return 0;
         }
         
         // Get all window devices
@@ -763,7 +763,7 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
         
         if (ventilating) {
             self.log('Zone '+zoneIndex+' is currently ventilated - device. Skipping');
-            return;
+            return 0;
         }
         
         lastVentilation.sort(function(a,b) { return b-a; });
@@ -772,7 +772,7 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
         self.log('Last ventilation diff '+lastVentilationDiff+' - last minutes '+lastMinutes);
         if (lastMinutes < lastVentilationDiff) {
             self.log("Last ventilation in zone "+zoneIndex+" "+lastMinutes+" minutes ago. Skipping");
-            return;
+            return 0;
         }
     }
     
@@ -788,7 +788,7 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
         countAll = countAll + 1;
         if ((deviceMode !== 'none' || deviceAuto === true) && deviceLevel > 0)  {
             self.log('Skipping window '+deviceObject.id+' in zone '+zoneIndex+' Current mode:'+ deviceMode+', Auto:'+deviceAuto);
-            return;
+            return 0;
         }
         
         countActive = countActive + 1;
@@ -803,7 +803,7 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
         setTimeout(_.bind(self.processStopVentilate,self,zoneIndex),(duration * 60 * 1000));
         return duration * 60;
     }
-    return;
+    return 0;
 };
 
 WindowControl.prototype.processStopVentilate = function(zoneIndex) {
