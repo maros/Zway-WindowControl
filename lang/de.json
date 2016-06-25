@@ -1,6 +1,8 @@
 {
    "interval_helper" : "Lüftet wenn der letze Lüftvorgang in der Zone (automatisch oder manuell) länger als n-Minuten her ist.",
    "interval_label" : "Lüftungs Intervall",
+   "lock_device_helper" : "Über einen optinalen Schalter oder Sensor können die Fenster in der aktuellen Position gesperrt werden. Nur starker Wind oder Regen ändert die Fensterposition wenn diese gesperrt sind.",
+   "lock_device_label" : "Fenster sperren",
    "m_descr" : "Steuert automatische Fentersöffner um optimale Temperatur, Lüftung und Sicherheit (Regen, Wind) zu erzielen. Über drei separate Modi - Winter, Sommer und Auto-Lüftung - lassen sich mehrere Fenster in mehreren Räumen (Zonen) optimal steuern.<br>Siehe <a href=https://github.com/maros/Zway-WindowControl/blob/master/README.md>github.com/maros/Zway-WindowControl</a> für detailliertere Dokumentation.",
    "m_title" : "Fenstersteuerung",
    "max_open_time_label" : "Maximale Fenster Öffnungsdauer",

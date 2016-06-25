@@ -1,6 +1,8 @@
 {
    "interval_helper" : "Ventilate if last ventilation in zone (either automatic or manual and detected through window sensors) is longer than n-minutes ago",
    "interval_label" : "Ventilation interval",
+   "lock_device_helper" : "An optional sensor or switch can be used to lock windows in the current position. Only strong wind or rain will cause window movement",
+   "lock_device_label" : "Lock windows",
    "m_descr" : "Control window drives for optimal temperature regulation in summer and winter, ventilation and security.<br>Check <a href=https://github.com/maros/Zway-WindowControl/blob/master/README.md>github.com/maros/Zway-WindowControl</a> for detailed documentation.",
    "m_title" : "Window Control",
    "max_open_time_label" : "Max window open time",
@@ -41,8 +43,8 @@
    "wind_sensor_device_label" : "Wind sensor",
    "window_devices_label" : "Window opener devices",
    "window_position_label" : "Window position (1-100)",
+   "window_sensors_helper" : "Binary sensors on windows operated manually to detect manual ventilation",
    "window_sensors_label" : "Window sensors device",
-   "window_sensors_helper": "Binary sensors on windows operated manually to detect manual ventilation",
    "winter_active_helper" : "Enables winter operation mode. In this mode windows will be opened if outside temperature is higher than the inside temperature",
    "winter_active_label" : "Enable winter mode",
    "winter_rules_label" : "Winter mode settings",

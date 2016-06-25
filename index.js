@@ -390,8 +390,13 @@ WindowControl.prototype.processWinter = function() {
     var targetPos           = self.getTargetPosition(75);
     
     _.each(self.config.zones,function(zone,index) {
-        var temperatureInside = self.getTemperatureZone(zone);
-        var targetTemperature   = self.thermostatDevice.get('metrics:level') + (self.config.zones[index].setpointDiff || 0);
+        var temperatureInside   = self.getTemperatureZone(zone);
+        var targetTemperature   = self.thermostatDevice.get('metrics:level') + (zone.setpointDiff || 0);
+        
+        if (self.getLockedZone(zone)) {
+            self.log('Zone '+index+' is locke. Not moving');
+            return;
+        }
         
         _.each(zone.windowDevices,function(deviceId) {
             var deviceObject = self.controller.devices.get(deviceId);
@@ -566,6 +571,11 @@ WindowControl.prototype.processSummer = function() {
         var zoneClose                   = temperatureClose + setpointDiff;
         var temperatureInsideCompare    = temperatureInside + temperatureDiff;
         
+        if (self.getLockedZone(zone)) {
+            self.log('Zone '+index+' is locked. Not moving');
+            return;
+        }
+        
         // Corridor
         if (temperatureOutside < zoneSetpoint
             && forecastLow < (zoneSetpoint - self.toUnit(5))
@@ -705,6 +715,11 @@ WindowControl.prototype.processVentilateZone = function(zoneIndex,args) {
     var windowPosition      = self.getTargetPosition(args.position || self.config.ventilationRules.windowPosition || 75);
     var now                 = Math.floor(new Date().getTime() / 1000);
     var controlDevice       = self.ventilationControlDevices[zoneIndex];
+    
+    if (forceVentilate === false && self.getLockedZone(self.config.zones[zoneIndex])) {
+        self.log('Zone '+zoneIndex+' is locked. Not moving');
+        return 0;
+    }
     
     // Calc duration
     if (typeof(duration) !== 'number') {
@@ -889,6 +904,26 @@ WindowControl.prototype.getTargetPosition = function(windowPosition) {
     windowPosition = Math.max(windowPosition,0);
     
     return windowPosition;
+};
+
+WindowControl.prototype.getLockedZone = function(zone) {
+    var self = this;
+    
+    var lockDevice = self.getDevice(zone.lockDevice);
+    if (typeof(lockDevice) !== 'undefined') {
+        var lockLevel   = blockDevice.get('metrics:level');
+        var lockType    = blockDevice.get('deviceType');
+        if (
+            (
+                ((lockType === 'switchMultilevel' || lockType === 'sensorMultilevel') && parseInt(lockLevel,10) > 0)
+                ||
+                ((lockType === 'switchBinary' || lockType === 'sensorBinary') && lockLevel === 'on')
+            )
+        ) {
+            return true;
+        }
+    }
+    return false;
 };
 
 WindowControl.prototype.getTemperatureZone = function(zone) {
