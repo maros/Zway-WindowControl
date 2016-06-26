@@ -911,8 +911,8 @@ WindowControl.prototype.getLockedZone = function(zone) {
     
     var lockDevice = self.getDevice(zone.lockDevice);
     if (typeof(lockDevice) !== 'undefined') {
-        var lockLevel   = blockDevice.get('metrics:level');
-        var lockType    = blockDevice.get('deviceType');
+        var lockLevel   = lockDevice.get('metrics:level');
+        var lockType    = lockDevice.get('deviceType');
         if (
             (
                 ((lockType === 'switchMultilevel' || lockType === 'sensorMultilevel') && parseInt(lockLevel,10) > 0)

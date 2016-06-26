@@ -184,6 +184,19 @@
                      "type" : "select",
                      "order" : 3
                   },
+                  "windowSensorDevices" : {
+                     "fields" : {
+                        "item" : {
+                           "datasource" : "namespaces",
+                           "field" : "optionLabels",
+                           "optionLabels" : "namespaces:devices_sensorBinary:deviceName",
+                           "type" : "select"
+                        }
+                     },
+                     "order" : 5,
+                     "helper" : "__window_sensors_helper__",
+                     "label" : "__window_sensors_label__"
+                  },
                   "windowDevices" : {
                      "fields" : {
                         "item" : {
@@ -197,7 +210,7 @@
                      "label" : "__window_devices_label__"
                   },
                   "lockDevice" : {
-                     "order" : 5,
+                     "order" : 6,
                      "datasource" : "namespaces",
                      "field" : "optionLabels",
                      "optionLabels" : "namespaces:devices_sensorBinary:deviceName,namespaces:devices_sensorMultilevel:deviceName,namespaces:devices_sensorBinary:switchName,namespaces:devices_switchMultilevel:deviceName",
