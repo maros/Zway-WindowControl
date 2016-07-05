@@ -569,6 +569,7 @@ WindowControl.prototype.processSummer = function() {
         var zoneSetpoint                = thermostatSetpoint + setpointDiff;
         var zoneOpen                    = temperatureOpen + setpointDiff;
         var zoneClose                   = temperatureClose + setpointDiff;
+        var zoneMinTemperature          = minTemperature;
         var temperatureInsideCompare    = temperatureInside + temperatureDiff;
         
         if (self.getLockedZone(zone)) {
@@ -576,13 +577,20 @@ WindowControl.prototype.processSummer = function() {
             return;
         }
         
+        // Reduce movement (open later, close later)
+        if (zoneOptimize === 'movement') {
+            zoneOpen  = zoneOpen + self.toUnit(0.5);
+            zoneClose  = zoneClose - self.toUnit(0.5);
+            zoneMinTemperature = zoneMinTemperature - self.toUnit(0.5);
+        }
+        
         // Corridor
         if (temperatureOutside < zoneSetpoint
             && forecastLow < (zoneSetpoint - self.toUnit(5))
             && temperatureInside < (zoneSetpoint + self.toUnit(3))
-            && temperatureOutside > minTemperature) {
+            && temperatureOutside > zoneMinTemperature) {
             
-            var corridor = Math.round((temperatureOutside - minTemperature) / (zoneSetpoint - minTemperature) * 100);
+            var corridor = Math.round((temperatureOutside - zoneMinTemperature) / (zoneSetpoint - zoneMinTemperature) * 100);
             self.log("Zone "+index+". DEBUG Corridor"+corridor+" - setpoint "+zoneSetpoint);
             corridor = Math.min(corridor,80);
             corridor = Math.max(corridor,20);
@@ -592,13 +600,7 @@ WindowControl.prototype.processSummer = function() {
             }
         }
         
-        // Reduce movement (open later, close later)
-        if (zoneOptimize === 'movement') {
-            zoneOpen  = zoneOpen + self.toUnit(0.5);
-            zoneClose  = zoneClose - self.toUnit(0.5);
-        }
-        
-        self.log("Zone "+index+". Inside="+temperatureInside+", Outside="+temperatureOutside+", Position="+zonePosition+", Diff="+temperatureDiff+", Min="+minTemperature);
+        self.log("Zone "+index+". Inside="+temperatureInside+", Outside="+temperatureOutside+", Position="+zonePosition+", Diff="+temperatureDiff+", Min="+zoneMinTemperature);
         
         // Handle zero or negative position
         if (zonePosition <= 0) {
@@ -608,7 +610,7 @@ WindowControl.prototype.processSummer = function() {
         // Warmer inside -> open
         } else if (temperatureInside >= zoneOpen
             && (temperatureInsideCompare+self.toUnit(0.25)) >= temperatureOutside
-            && temperatureOutside >= (minTemperature+self.toUnit(0.5))) {
+            && temperatureOutside >= (zoneMinTemperature+self.toUnit(0.5))) {
             self.log("Zone "+index+". Opening all windows to "+zonePosition+"% (inside comp temperature "+temperatureInsideCompare+" above opening temperature "+zoneOpen+")");
             zoneAction = "open";
         // Cool inside -> close
@@ -620,8 +622,8 @@ WindowControl.prototype.processSummer = function() {
             self.log("Zone "+index+". Closing all windows (inside cmp temperature "+temperatureInsideCompare+" below outside temperature "+temperatureOutside+")");
             zoneAction = "close";
         // Too cold outside -> close
-        } else if (temperatureOutside <= minTemperature) {
-            self.log("Zone "+index+". Closing all windows (outside temperature "+temperatureOutside+" below min temperature "+minTemperature+")");
+        } else if (temperatureOutside <= zoneMinTemperature) {
+            self.log("Zone "+index+". Closing all windows (outside temperature "+temperatureOutside+" below min temperature "+zoneMinTemperature+")");
             zoneAction = "close";
         }
         
