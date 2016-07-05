@@ -515,8 +515,8 @@ WindowControl.prototype.processSummer = function() {
         temperatureDiff         = temperatureDiff + self.toUnit(1);
         self.log('DEBUG: Evening mode');
     // Night mode during warm days
-    } else if (operationMode == "high" && now.getHours() <= 6) {
-        minTemperature          = minTemperature - self.toUnit(1);
+    } else if (operationMode == "high" && now.getHours() <= 7) {
+        minTemperature          = minTemperature - self.toUnit(0.5);
         temperatureDiff         = temperatureDiff + self.toUnit(1);
         temperatureOpen         = temperatureOpen - self.toUnit(0.5);
         temperatureClose        = temperatureClose - self.toUnit(0.5);
