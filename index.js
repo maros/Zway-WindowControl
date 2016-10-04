@@ -506,7 +506,7 @@ WindowControl.prototype.processSummer = function() {
         temperatureOpen         = Math.max(temperatureOpen,thermostatSetpoint - self.toUnit(2));
         temperatureClose        = Math.max(temperatureClose,thermostatSetpoint - self.toUnit(3));
         minTemperature          = minTemperature - self.toUnit(1);
-        temperatureDiff         = temperatureDiff + self.toUnit(0.5);
+        temperatureDiff         = temperatureDiff - self.toUnit(0.5);
         self.log('DEBUG: High temp mode');
     }
 
@@ -517,7 +517,7 @@ WindowControl.prototype.processSummer = function() {
     // Night mode during warm days
     } else if (operationMode == "high" && now.getHours() <= 7) {
         minTemperature          = minTemperature - self.toUnit(0.5);
-        temperatureDiff         = temperatureDiff + self.toUnit(1);
+        temperatureDiff         = temperatureDiff + self.toUnit(0.5);
         temperatureOpen         = temperatureOpen - self.toUnit(0.5);
         temperatureClose        = temperatureClose - self.toUnit(0.5);
         self.log('DEBUG: Night mode');
@@ -537,21 +537,21 @@ WindowControl.prototype.processSummer = function() {
         if (presence === true
             && temperatureOutside < thermostatSetpoint) {
             minTemperature      = minTemperature + self.toUnit(1);
-            temperatureDiff     = temperatureDiff - self.toUnit(1);
+            temperatureDiff     = temperatureDiff + self.toUnit(0.5);
             self.log('DEBUG: Home and cool mode');
         // Away and hot
         } else if (presence === false
             && operationMode === 'high') {
             temperatureOpen     = temperatureOpen - self.toUnit(0.5);
             temperatureClose    = temperatureClose - self.toUnit(0.5);
-            temperatureDiff     = temperatureDiff + self.toUnit(0.5);
+            temperatureDiff     = temperatureDiff - self.toUnit(0.5);
             self.log('DEBUG: Away and hot mode');
         // Home and heatwave
         } else if (presence === true
             && operationMode == "high"
             && forecastHigh > (thermostatSetpoint + self.toUnit(6))) {
             minTemperature      = minTemperature - self.toUnit(1);
-            temperatureDiff     = temperatureDiff + self.toUnit(0.5);
+            temperatureDiff     = temperatureDiff - self.toUnit(0.5);
             self.log('DEBUG: Home and heatwave mode');
         }
     }
@@ -618,8 +618,8 @@ WindowControl.prototype.processSummer = function() {
             self.log("Zone "+index+". Closing all windows (inside temperature "+temperatureInside+" below "+zoneClose+")");
             zoneAction = "close";
         // Warmer outside -> close
-        } else if ((temperatureInsideCompare+self.toUnit(0.75)) <= temperatureOutside) {
-            self.log("Zone "+index+". Closing all windows (inside cmp temperature "+temperatureInsideCompare+" below outside temperature "+temperatureOutside+")");
+        } else if ((temperatureInsideCompare+self.toUnit(0.50)) <= temperatureOutside) {
+            self.log("Zone "+index+". Closing all windows (outside temperature "+temperatureOutside+" above cmp inside temperature "+(temperatureInsideCompare+self.toUnit(0.50))+")");
             zoneAction = "close";
         // Too cold outside -> close
         } else if (temperatureOutside <= zoneMinTemperature) {
