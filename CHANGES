@@ -1,2 +1,10 @@
+1.01 2016 Oct 06, Thu
+    * Tweak window operation parameters
+    * Tweak night mode
+    * Min temperature per zone
+    * Add lock devices
+    * Return ventilation duration 0
+    * Update homepage
+
 1.00 2016 Jun 20, Mon
     * Initial version

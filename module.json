@@ -162,6 +162,15 @@
          "zones" : {
             "items" : {
                "fields" : {
+                  "lockDevice" : {
+                     "datasource" : "namespaces",
+                     "field" : "optionLabels",
+                     "helper" : "__lock_device_helper__",
+                     "label" : "__lock_device_label__",
+                     "optionLabels" : "namespaces:devices_sensorBinary:deviceName,namespaces:devices_sensorMultilevel:deviceName,namespaces:devices_sensorBinary:switchName,namespaces:devices_switchMultilevel:deviceName",
+                     "order" : 6,
+                     "type" : "select"
+                  },
                   "optimize" : {
                      "helper" : "__optimize_helper__",
                      "label" : "__optimize_label__",
@@ -181,21 +190,8 @@
                      "field" : "optionLabels",
                      "label" : "__temperature_inside_sensor_device_label__",
                      "optionLabels" : "namespaces:devices_sensorMultilevel:deviceName",
-                     "type" : "select",
-                     "order" : 3
-                  },
-                  "windowSensorDevices" : {
-                     "fields" : {
-                        "item" : {
-                           "datasource" : "namespaces",
-                           "field" : "optionLabels",
-                           "optionLabels" : "namespaces:devices_sensorBinary:deviceName",
-                           "type" : "select"
-                        }
-                     },
-                     "order" : 5,
-                     "helper" : "__window_sensors_helper__",
-                     "label" : "__window_sensors_label__"
+                     "order" : 3,
+                     "type" : "select"
                   },
                   "windowDevices" : {
                      "fields" : {
@@ -206,17 +202,21 @@
                            "type" : "select"
                         }
                      },
-                     "order" : 2,
-                     "label" : "__window_devices_label__"
+                     "label" : "__window_devices_label__",
+                     "order" : 2
                   },
-                  "lockDevice" : {
-                     "order" : 6,
-                     "datasource" : "namespaces",
-                     "field" : "optionLabels",
-                     "optionLabels" : "namespaces:devices_sensorBinary:deviceName,namespaces:devices_sensorMultilevel:deviceName,namespaces:devices_sensorBinary:switchName,namespaces:devices_switchMultilevel:deviceName",
-                     "type" : "select",
-                     "helper" : "__lock_device_helper__",
-                     "label" : "__lock_device_label__"
+                  "windowSensorDevices" : {
+                     "fields" : {
+                        "item" : {
+                           "datasource" : "namespaces",
+                           "field" : "optionLabels",
+                           "optionLabels" : "namespaces:devices_sensorBinary:deviceName",
+                           "type" : "select"
+                        }
+                     },
+                     "helper" : "__window_sensors_helper__",
+                     "label" : "__window_sensors_label__",
+                     "order" : 5
                   }
                }
             },
@@ -349,6 +349,11 @@
                   "setpointDiff" : 0
                },
                "properties" : {
+                  "lockDevice" : {
+                     "datasource" : "namespaces",
+                     "enum" : "namespaces:devices_sensorMultilevel:deviceId,namespaces:devices_sensorBinary:deviceId,namespaces:devices_switchMultilevel:deviceId,namespaces:devices_switchBinary:deviceId",
+                     "field" : "enum"
+                  },
                   "optimize" : {
                      "default" : "temperature",
                      "enum" : [
@@ -387,11 +392,6 @@
                      },
                      "type" : "array",
                      "uniqueItems" : true
-                  },
-                  "lockDevice" : {
-                     "datasource" : "namespaces",
-                     "enum" : "namespaces:devices_sensorMultilevel:deviceId,namespaces:devices_sensorBinary:deviceId,namespaces:devices_switchMultilevel:deviceId,namespaces:devices_switchBinary:deviceId",
-                     "field" : "enum"
                   }
                },
                "type" : "object"
@@ -404,5 +404,5 @@
       "type" : "object"
    },
    "singleton" : false,
-   "version" : "1.00"
+   "version" : "1.01"
 }
