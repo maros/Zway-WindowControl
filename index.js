@@ -256,26 +256,28 @@ WindowControl.prototype.initCallback = function() {
 WindowControl.prototype.processAlarm = function(event) {
     var self = this;
 
-    var presence = self.getPresenceBoolean();
+    //var presence = self.getPresenceBoolean();
     self.log('Smoke alarm');
+    var alarm = false;
+    if (event == 'security.smoke.alarm') {
+        alarm = true;
+    }
 
-    // TODO handle smoke alarm
-
-    /*
     _.each(self.windowDevices,function(deviceId) {
         var deviceObject = self.controller.devices.get(deviceId);
         if (deviceObject === null) {
             self.error('Could not find window device '+deviceId);
             return;
         }
-        if (alarm === true && present === true) {
+        if (alarm === true) {
+            // Really close on smoke alarm
             deviceObject.set('metrics:auto',true);
-            deviceObject.performCommand('on');
+            deviceObject.performCommand('off');
         } else {
             deviceObject.set('metrics:auto',false);
+            // Ventilate after alarm?
         }
     });
-    */
 };
 
 WindowControl.prototype.processRain = function(event) {
