@@ -6,12 +6,12 @@ are available
 
 * Winter mode: Open windows whenever it is warmer outside than inside and
 inside temperature is below target temperature.
-* Summer mode: Open windows whenever it is colder outside and inside 
+* Summer mode: Open windows whenever it is colder outside and inside
 temperature is above selected target temperature. Summer mode will optimize
 window opening based on weather forecast, time of day and presence state.
 * Ventilation mode: Ensure regular ventilation - either manual or automated
 
-For every enabled mode a control device will be created to temporarily 
+For every enabled mode a control device will be created to temporarily
 activate/deactivate window actions. Furthermore WindowControl will close/not
 open windows if rain or strong wind was detected.
 
@@ -41,7 +41,7 @@ setpoint (eg. -1)
 
 ## zone.optimize
 
-Option to set optimization for the zone: Either optimal temperature or 
+Option to set optimization for the zone: Either optimal temperature or
 minimal device movement (eg. for bedroom)
 
 ## summerActive
@@ -54,7 +54,7 @@ mode is mutually exclusive with winter mode.
 
 Options required by summer ventilation. Summer ventilation mode will try to
 achieve optimal comfort temperature by opening windows when appropriate
-(outside cooler than inside, when inside temperature is above desired 
+(outside cooler than inside, when inside temperature is above desired
 temperature, ...)
 
 ## summerRules.minTemperatureOutside
@@ -111,7 +111,7 @@ List of times (in HH:MM) when ventilation should be checked.
 
 ## unitTemperature
 
-Temperature unit. Imperial or metric-
+Temperature unit. Imperial or metric.
 
 ## maxWind
 
@@ -120,7 +120,7 @@ windSensorDevice are above this level.
 
 ## thermostatDevice
 
-Optional thermostat device for setting the target temperature. If no 
+Optional thermostat device for setting the target temperature. If no
 thermostat is provided, a virtual thermostat will be created. This thermostat
 is used to set the desired temperature for winter and summer modes.
 
@@ -155,11 +155,11 @@ control action.
 # Installation
 
 The prefered way of installing this module is via the "Zwave.me App Store"
-available in 2.2.0 and higher. For stable module releases no access token is 
-required. If you want to test the latest pre-releases use 'k1_beta' as 
+available in 2.2.0 and higher. For stable module releases no access token is
+required. If you want to test the latest pre-releases use 'k1_beta' as
 app store access token.
 
-For developers and users of older Zway versions installation via git is 
+For developers and users of older Zway versions installation via git is
 recommended.
 
 ```shell
@@ -183,7 +183,7 @@ git checkout -b master --track origin/master
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or any 
+the Free Software Foundation, either version 3 of the License, or any
 later version.
 
 This program is distributed in the hope that it will be useful,
