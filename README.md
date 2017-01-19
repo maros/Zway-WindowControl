@@ -15,6 +15,9 @@ For every enabled mode a control device will be created to temporarily
 activate/deactivate window actions. Furthermore WindowControl will close/not
 open windows if rain or strong wind was detected.
 
+For optimal functionality either WeatherUnderground or ForecastIO modules
+should also be installed.
+
 # Configuration
 
 ## zones
