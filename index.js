@@ -460,7 +460,8 @@ WindowControl.prototype.processSummer = function() {
     var temperatureDiff     = 0;
     var temperatureOpen     = thermostatSetpoint + self.toUnit(0.25);
     var temperatureClose    = thermostatSetpoint - self.toUnit(0.50);
-    var now                 = new Date(Date.now());
+    var hour                = new Date(Date.now()).getHours();
+    var now                 = Math.floor(new Date().getTime() / 1000);
     var presence            = self.getPresenceBoolean();
 
     // Warn about missing devices
@@ -483,7 +484,6 @@ WindowControl.prototype.processSummer = function() {
         // TODO incorporate forecast
         // Try to guess forecast
     } else {
-        var hour = now.getHour();
         temperatureChange = 'unchanged';
         if (hour >= 7 && hour <= 15) {
             temperatureChange = 'rise';
@@ -513,11 +513,11 @@ WindowControl.prototype.processSummer = function() {
     }
 
     // Evening mode
-    if (now.getHours() >= 20) {
+    if (hour >= 20) {
         temperatureDiff         = temperatureDiff + self.toUnit(1);
         self.log('DEBUG: Evening mode');
     // Night mode during warm days
-    } else if (operationMode == "high" && now.getHours() <= 7) {
+    } else if (operationMode == "high" && hour <= 7) {
         minTemperature          = minTemperature - self.toUnit(0.5);
         temperatureDiff         = temperatureDiff + self.toUnit(0.5);
         temperatureOpen         = temperatureOpen - self.toUnit(0.5);
@@ -573,7 +573,7 @@ WindowControl.prototype.processSummer = function() {
         var zoneClose                   = temperatureClose + setpointDiff;
         var zoneMinTemperature          = minTemperature;
         var temperatureInsideCompare    = temperatureInside + temperatureDiff;
-        
+
         if (self.getLockedZone(zone)) {
             self.log('Zone '+index+' is locked. Not moving');
             return;
@@ -666,7 +666,8 @@ WindowControl.prototype.processSummer = function() {
                     && deviceMode === 'summer'
                     && deviceAuto === true
                     && deviceLevel != zonePosition
-                    && (zoneOptimize === 'temperature' || Math.abs(deviceLevel-zonePosition) >= 60)) {
+                    && (zoneOptimize === 'temperature' || Math.abs(deviceLevel-zonePosition) >= 60)
+                    && lastChange > (now -  (15*60) )) {
                     self.log("Zone "+index+". Move window "+deviceObject.id);
                     deviceObject.performCommand('exact', { level: zonePosition });
                 }
