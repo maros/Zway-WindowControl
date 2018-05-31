@@ -366,15 +366,19 @@ WindowControl.prototype.checkDevices = function() {
     self.processDeviceList(self.windowDevices,function(deviceObject) {
         var offTime     = deviceObject.get('metrics:offTime');
         var level       = deviceObject.get('metrics:level');
+        var target      = deviceObject.get('metrics:target');
         var auto        = deviceObject.get('metrics:auto');
         var deviceMode  = deviceObject.get('metrics:windowMode') || 'none';
+        if (typeof(target) === 'undefined') {
+            target          = level;
+        }
         if (typeof(offTime) === 'number'
             && offTime < now
-            && level > 0
+            && (level > 0 || target > 0)
             && auto === true) {
             self.log('Close window after off time '+deviceObject.id);
             self.moveDevices(deviceObject,0,'none');
-        } else if (level === 0
+        } else if ((level === 0 && target == 0)
             && (auto === true || deviceMode !== 'none')) {
             self.log('Fix device mode mismatch');
             deviceObject.set('metrics:windowMode','none');
