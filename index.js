@@ -369,7 +369,7 @@ WindowControl.prototype.checkDevices = function() {
         var target      = deviceObject.get('metrics:target');
         var auto        = deviceObject.get('metrics:auto');
         var deviceMode  = deviceObject.get('metrics:windowMode') || 'none';
-        if (typeof(target) === 'undefined') {
+        if (typeof(target) === 'undefined' || target === null) {
             target          = level;
         }
         if (typeof(offTime) === 'number'
