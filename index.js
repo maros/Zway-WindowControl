@@ -365,24 +365,32 @@ WindowControl.prototype.checkDevices = function() {
     // Check off time & mode
     self.processDeviceList(self.windowDevices,function(deviceObject) {
         var offTime     = deviceObject.get('metrics:offTime');
-        var level       = deviceObject.get('metrics:level');
+        var level       = parseInt(deviceObject.get('metrics:level'),10);
         var target      = deviceObject.get('metrics:target');
         var auto        = deviceObject.get('metrics:auto');
         var deviceMode  = deviceObject.get('metrics:windowMode') || 'none';
         if (typeof(target) === 'undefined' || target === null) {
-            target          = level;
+            target = level;
+        } else {
+            target = parseInt(target,10);
         }
         if (typeof(offTime) === 'number'
             && offTime < now
             && (level > 0 || target > 0)
             && auto === true) {
             self.log('Close window after off time '+deviceObject.id);
+            deviceObject.set('metrics:offTime',null);
             self.moveDevices(deviceObject,0,'none');
         } else if ((level === 0 && target == 0)
             && (auto === true || deviceMode !== 'none')) {
             self.log('Fix device mode mismatch');
             deviceObject.set('metrics:windowMode','none');
             deviceObject.set('metrics:auto',false);
+        } else if (typeof(offTime) === 'number'
+            && offTime < now
+            && level === 0) {
+            self.log('Reset invali offTime '+deviceObject.id);
+            deviceObject.set('metrics:offTime',null);
         }
     });
 };
@@ -840,10 +848,11 @@ WindowControl.prototype.processStopVentilate = function(zoneIndex) {
             && deviceObject.get('metrics:level') > 0
             && deviceObject.get('metrics:auto') === true) {
             self.moveDevices(deviceObject,0,'none');
+            deviceObject.set('metrics:offTime',null);
         }
     });
 
-    controlDevice.set('metrics:offTime',undefined);
+    controlDevice.set('metrics:offTime',null);
     controlDevice.set('metrics:icon',self.imagePath+"/icon_ventilate.png");
     controlDevice.set('metrics:level',"off");
 };
@@ -1003,7 +1012,7 @@ WindowControl.prototype.moveDevices = function(devices,position,windowMode,offTi
             if (typeof(windowMode) !== 'undefined') {
                 deviceObject.set('metrics:windowMode',windowMode);
             }
-            if (typeof(offTime) !== 'undefined') {
+            if (offTime != null) {
                 deviceObject.set('metrics:offTime',offTime);
             }
         }
