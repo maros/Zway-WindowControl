@@ -389,7 +389,7 @@ WindowControl.prototype.checkDevices = function() {
         } else if (typeof(offTime) === 'number'
             && offTime < now
             && level === 0) {
-            self.log('Reset invali offTime '+deviceObject.id);
+            self.log('Reset offTime interval '+deviceObject.id);
             deviceObject.set('metrics:offTime',null);
         }
     });
@@ -479,7 +479,7 @@ WindowControl.prototype.processSummer = function() {
     // Warn about missing devices
     if (typeof(conditionDevice) === 'undefined'
         || typeof(forecastDevice) === 'undefined') {
-        self.log('Forecast and condition device not found. Please install the WeatherUnderground or ForecastIO module to improve window operation');
+        self.log('Forecast and condition device not found. Please install the ForecastIO module to improve window operation');
     }
     if (typeof(presence) === 'undefined') {
         self.log('Presence device not found. Please install the Presence module to improve window operation');
@@ -1003,17 +1003,13 @@ WindowControl.prototype.moveDevices = function(devices,position,windowMode,offTi
         //    return;
         //}
         self.log('Auto move window '+deviceObject.id+' to '+position);
-        if (position === 0) {
+        if (position <= 0) {
             deviceObject.set('metrics:auto',false);
             deviceObject.set('metrics:offTime',null);
             deviceObject.set('metrics:windowMode','none');
             deviceObject.performCommand('off');
         } else {
-            if (position >= 99) {
-                deviceObject.performCommand('on');
-            } else {
-                deviceObject.performCommand('exact',{ level: position });
-            }
+            deviceObject.performCommand('exact',{ level: position });
             deviceObject.set('metrics:auto',true);
             if (typeof(windowMode) !== 'undefined') {
                 deviceObject.set('metrics:windowMode',windowMode);
