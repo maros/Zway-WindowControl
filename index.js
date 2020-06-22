@@ -653,7 +653,11 @@ WindowControl.prototype.processSummer = function() {
                 }
 
                 var deviceAuto  = deviceObject.get('metrics:auto') || false;
-                var deviceLevel = deviceObject.get('metrics:level') || 0;
+                var deviceLevel = deviceObject.get('metrics:target');
+                if (deviceLevel === null || deviceLevel === undefined) {
+                    deviceLevel = deviceObject.get('metrics:level');
+                }
+
                 var deviceMode  = deviceObject.get('metrics:windowMode') || 'none';
                 var lastChange  = deviceObject.get('metrics:modificationTime') || now;
 
@@ -678,10 +682,12 @@ WindowControl.prototype.processSummer = function() {
                     && deviceMode === 'summer'
                     && deviceAuto === true
                     && deviceLevel != zonePosition
-                    && (zoneOptimize === 'temperature' || Math.abs(deviceLevel-zonePosition) >= 60)
-                    && lastChange > (now -  (15*60) )) {
+                    && (zoneOptimize === 'temperature' || Math.abs(deviceLevel-zonePosition) >= 50)
+                    && lastChange > (now -  (20*60) )) {
                     self.log("Zone "+index+". Move window "+deviceObject.id);
                     deviceObject.performCommand('exact', { level: zonePosition });
+                } else {
+                    self.log("Zone "+index+". Keep window "+deviceObject.id+' at '+deviceLevel);
                 }
             });
         }
